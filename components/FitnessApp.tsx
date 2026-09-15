@@ -8,7 +8,7 @@ import { Nav } from '@/components/Nav';
 import { OnboardingModal } from '@/components/OnboardingModal';
 import { CalendarPage, DietPage, ProfilePage, ProgressPage, WorkoutPage } from '@/components/PlanPages';
 import { useFitnessState } from '@/hooks/useFitnessState';
-import { clearAccessToken, clearDemoLogin, fitnessApi, isDemoLogin } from '@/lib/api';
+import { clearAccessToken, clearDemoLogin, clearDemoOnboarding, fitnessApi, isDemoLogin } from '@/lib/api';
 import type { Profile, View } from '@/types/fitness';
 
 const titles: Record<Exclude<View, 'dashboard'>, string> = { workout: 'Workout plan', diet: 'Nutrition plan', calendar: 'Your calendar', progress: 'Progress overview', profile: 'Your profile' };
@@ -22,7 +22,7 @@ export default function FitnessApp() {
   }, []);
   if (authenticated === null) return <main className="auth-shell"><div className="auth-panel">Loading your session...</div></main>;
   if (!authenticated) return <AuthScreen onAuthenticated={(isNewUser) => { setStartOnboarding(isNewUser); setAuthenticated(true); }} />;
-  return <AuthenticatedFitnessApp startOnboarding={startOnboarding} onLogout={() => { clearAccessToken(); clearDemoLogin(); setAuthenticated(false); }} />;
+  return <AuthenticatedFitnessApp startOnboarding={startOnboarding} onLogout={() => { clearAccessToken(); clearDemoLogin(); clearDemoOnboarding(); setAuthenticated(false); }} />;
 }
 
 function AuthenticatedFitnessApp({ startOnboarding, onLogout }: { startOnboarding: boolean; onLogout: () => void }) {

@@ -3,12 +3,20 @@ import type { ActivityToday, DailySchedule, FitnessState, GeneratedWorkoutPlan, 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? '/api/v1';
 const ACCESS_TOKEN_KEY = 'formwell.accessToken';
 const DEMO_PHONE_KEY = 'formwell.demoPhone';
+const DEMO_ONBOARDING_KEY = 'formwell.demoOnboarding';
 
 export function setAccessToken(token: string) { sessionStorage.setItem(ACCESS_TOKEN_KEY, token); }
 export function clearAccessToken() { sessionStorage.removeItem(ACCESS_TOKEN_KEY); }
 export function setDemoPhone(phoneNumber: string) { sessionStorage.setItem(DEMO_PHONE_KEY, phoneNumber); }
 export function isDemoLogin() { return typeof window !== 'undefined' && Boolean(sessionStorage.getItem(DEMO_PHONE_KEY)); }
 export function clearDemoLogin() { sessionStorage.removeItem(DEMO_PHONE_KEY); }
+export function getDemoOnboarding<T>(): T | null {
+  const saved = sessionStorage.getItem(DEMO_ONBOARDING_KEY);
+  if (!saved) return null;
+  try { return JSON.parse(saved) as T; } catch { return null; }
+}
+export function saveDemoOnboarding<T>(onboarding: T) { sessionStorage.setItem(DEMO_ONBOARDING_KEY, JSON.stringify(onboarding)); }
+export function clearDemoOnboarding() { sessionStorage.removeItem(DEMO_ONBOARDING_KEY); }
 
 export class ApiError extends Error {
   constructor(public readonly status: number, message: string) {

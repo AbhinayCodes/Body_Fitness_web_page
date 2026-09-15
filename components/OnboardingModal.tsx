@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { fitnessApi } from '@/lib/api';
+import { fitnessApi, getDemoOnboarding, isDemoLogin, saveDemoOnboarding } from '@/lib/api';
 import type { OnboardingData } from '@/types/fitness';
 
 const steps = ['Body', 'Goals', 'Training', 'Food', 'Routine', 'Review'];
@@ -18,6 +18,15 @@ export function OnboardingModal({ onClose, onCompleted, required = false }: { on
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (isDemoLogin()) {
+      const saved = getDemoOnboarding<OnboardingData>();
+      if (saved) {
+        setData({ ...defaults, ...saved });
+        setStep(saved.completed ? 1 : saved.currentStep ?? 1);
+      }
+      setLoading(false);
+      return;
+    }
     fitnessApi.getOnboarding().then((saved) => {
       setData({ ...defaults, ...saved });
       setStep(saved.completed ? 1 : saved.currentStep ?? 1);
@@ -40,7 +49,9 @@ export function OnboardingModal({ onClose, onCompleted, required = false }: { on
     setSaving(true);
     setError(null);
     try {
-      await fitnessApi.saveOnboarding({ ...data, currentStep: nextStep, completed });
+      const onboarding = { ...data, currentStep: nextStep, completed };
+      if (isDemoLogin()) saveDemoOnboarding(onboarding);
+      else await fitnessApi.saveOnboarding(onboarding);
       setStep(nextStep);
       return true;
     } catch {
