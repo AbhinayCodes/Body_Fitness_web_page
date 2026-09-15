@@ -11,25 +11,19 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ProfileService = void 0;
 const common_1 = require("@nestjs/common");
-const fitness_state_repository_1 = require("../data-access/fitness-state.repository");
+const fitness_repository_1 = require("../data-access/fitness.repository");
 let ProfileService = class ProfileService {
     repository;
     constructor(repository) {
         this.repository = repository;
     }
-    async updateProfile(payload) {
-        const state = await this.repository.updateState((current) => {
-            for (const key of ['name', 'goal', 'days', 'diet']) {
-                if (typeof payload[key] === 'string')
-                    current.profile[key] = payload[key];
-            }
-        });
-        return state.profile;
+    async updateProfile(userId, payload) {
+        return this.repository.updateProfile(userId, payload);
     }
 };
 exports.ProfileService = ProfileService;
 exports.ProfileService = ProfileService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [fitness_state_repository_1.FitnessStateRepository])
+    __metadata("design:paramtypes", [fitness_repository_1.FitnessRepository])
 ], ProfileService);
 //# sourceMappingURL=profile.service.js.map

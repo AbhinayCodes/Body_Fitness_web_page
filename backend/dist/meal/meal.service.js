@@ -11,27 +11,19 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.MealService = void 0;
 const common_1 = require("@nestjs/common");
-const fitness_state_repository_1 = require("../data-access/fitness-state.repository");
+const fitness_repository_1 = require("../data-access/fitness.repository");
 let MealService = class MealService {
     repository;
     constructor(repository) {
         this.repository = repository;
     }
-    async createMeal(payload) {
-        const entry = {
-            date: new Date().toISOString().slice(0, 10),
-            meal: payload.meal ?? 'Paneer rice bowl',
-        };
-        await this.repository.updateState((state) => {
-            state.mealDone = true;
-            state.mealHistory.push(entry);
-        });
-        return entry;
+    async createMeal(userId, payload) {
+        return this.repository.createMeal(userId, payload);
     }
 };
 exports.MealService = MealService;
 exports.MealService = MealService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [fitness_state_repository_1.FitnessStateRepository])
+    __metadata("design:paramtypes", [fitness_repository_1.FitnessRepository])
 ], MealService);
 //# sourceMappingURL=meal.service.js.map

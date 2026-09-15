@@ -14,6 +14,8 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.MealController = void 0;
 const common_1 = require("@nestjs/common");
+const authenticated_user_decorator_1 = require("../auth/authenticated-user.decorator");
+const jwt_auth_guard_1 = require("../auth/jwt-auth.guard");
 const create_meal_dto_1 = require("./dto/create-meal.dto");
 const meal_service_1 = require("./meal.service");
 let MealController = class MealController {
@@ -21,17 +23,19 @@ let MealController = class MealController {
     constructor(mealService) {
         this.mealService = mealService;
     }
-    createMeal(payload) {
-        return this.mealService.createMeal(payload);
+    createMeal(userId, payload) {
+        return this.mealService.createMeal(userId, payload);
     }
 };
 exports.MealController = MealController;
 __decorate([
     (0, common_1.Post)(),
     (0, common_1.HttpCode)(common_1.HttpStatus.CREATED),
-    __param(0, (0, common_1.Body)()),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    __param(0, (0, authenticated_user_decorator_1.CurrentUserId)()),
+    __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [create_meal_dto_1.CreateMealDto]),
+    __metadata("design:paramtypes", [String, create_meal_dto_1.CreateMealDto]),
     __metadata("design:returntype", void 0)
 ], MealController.prototype, "createMeal", null);
 exports.MealController = MealController = __decorate([

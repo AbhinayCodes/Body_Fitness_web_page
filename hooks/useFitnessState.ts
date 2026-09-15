@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { ApiError, fitnessApi } from '@/lib/api';
 import type { AppState, Profile } from '@/types/fitness';
 
-const defaultProfile: Profile = { name: 'Rahul', goal: 'Build muscle', days: '4 days / week', diet: 'Vegetarian' };
+const defaultProfile: Profile = { name: 'Member', goal: 'Set up your plan', days: 'Your schedule', diet: 'Your food preferences' };
 
 export function useFitnessState() {
   const [state, setState] = useState<AppState>({

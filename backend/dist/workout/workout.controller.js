@@ -14,28 +14,55 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.WorkoutController = void 0;
 const common_1 = require("@nestjs/common");
+const authenticated_user_decorator_1 = require("../auth/authenticated-user.decorator");
+const jwt_auth_guard_1 = require("../auth/jwt-auth.guard");
 const create_workout_dto_1 = require("./dto/create-workout.dto");
 const workout_service_1 = require("./workout.service");
+const workout_plan_service_1 = require("./workout-plan.service");
+const update_workout_progress_dto_1 = require("./dto/update-workout-progress.dto");
 let WorkoutController = class WorkoutController {
     workoutService;
-    constructor(workoutService) {
+    workoutPlanService;
+    constructor(workoutService, workoutPlanService) {
         this.workoutService = workoutService;
+        this.workoutPlanService = workoutPlanService;
     }
-    createWorkout(payload) {
-        return this.workoutService.createWorkout(payload);
+    getPlan(userId) { return this.workoutPlanService.getPlan(userId); }
+    updateTodayProgress(userId, payload) { return this.workoutService.updateTodayProgress(userId, payload); }
+    createWorkout(userId, payload) {
+        return this.workoutService.createWorkout(userId, payload);
     }
 };
 exports.WorkoutController = WorkoutController;
 __decorate([
+    (0, common_1.Get)('plan'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    __param(0, (0, authenticated_user_decorator_1.CurrentUserId)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], WorkoutController.prototype, "getPlan", null);
+__decorate([
+    (0, common_1.Put)('today/progress'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    __param(0, (0, authenticated_user_decorator_1.CurrentUserId)()),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, update_workout_progress_dto_1.UpdateWorkoutProgressDto]),
+    __metadata("design:returntype", void 0)
+], WorkoutController.prototype, "updateTodayProgress", null);
+__decorate([
     (0, common_1.Post)(),
     (0, common_1.HttpCode)(common_1.HttpStatus.CREATED),
-    __param(0, (0, common_1.Body)()),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    __param(0, (0, authenticated_user_decorator_1.CurrentUserId)()),
+    __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [create_workout_dto_1.CreateWorkoutDto]),
+    __metadata("design:paramtypes", [String, create_workout_dto_1.CreateWorkoutDto]),
     __metadata("design:returntype", void 0)
 ], WorkoutController.prototype, "createWorkout", null);
 exports.WorkoutController = WorkoutController = __decorate([
     (0, common_1.Controller)(['api/v1/workouts', 'api/workouts']),
-    __metadata("design:paramtypes", [workout_service_1.WorkoutService])
+    __metadata("design:paramtypes", [workout_service_1.WorkoutService, workout_plan_service_1.WorkoutPlanService])
 ], WorkoutController);
 //# sourceMappingURL=workout.controller.js.map

@@ -14,6 +14,8 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ProfileController = void 0;
 const common_1 = require("@nestjs/common");
+const authenticated_user_decorator_1 = require("../auth/authenticated-user.decorator");
+const jwt_auth_guard_1 = require("../auth/jwt-auth.guard");
 const update_profile_dto_1 = require("./dto/update-profile.dto");
 const profile_service_1 = require("./profile.service");
 let ProfileController = class ProfileController {
@@ -21,16 +23,18 @@ let ProfileController = class ProfileController {
     constructor(profileService) {
         this.profileService = profileService;
     }
-    updateProfile(payload) {
-        return this.profileService.updateProfile(payload);
+    updateProfile(userId, payload) {
+        return this.profileService.updateProfile(userId, payload);
     }
 };
 exports.ProfileController = ProfileController;
 __decorate([
     (0, common_1.Put)(),
-    __param(0, (0, common_1.Body)()),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    __param(0, (0, authenticated_user_decorator_1.CurrentUserId)()),
+    __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [update_profile_dto_1.UpdateProfileDto]),
+    __metadata("design:paramtypes", [String, update_profile_dto_1.UpdateProfileDto]),
     __metadata("design:returntype", void 0)
 ], ProfileController.prototype, "updateProfile", null);
 exports.ProfileController = ProfileController = __decorate([

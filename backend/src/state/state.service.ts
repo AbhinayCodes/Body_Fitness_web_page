@@ -6,7 +6,7 @@ import type { FitnessState } from '../data-access/fitness-state.types';
 export class StateService {
   constructor(private readonly repository: FitnessRepository) {}
 
-  getState(): Promise<FitnessState> {
-    return this.repository.getState();
+  getState(userId: string): Promise<FitnessState> {
+    return this.repository.getState(userId);
   }
 }

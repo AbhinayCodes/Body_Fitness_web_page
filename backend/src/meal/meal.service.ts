@@ -7,7 +7,7 @@ import type { CreateMealDto } from './dto/create-meal.dto';
 export class MealService {
   constructor(private readonly repository: FitnessRepository) {}
 
-  async createMeal(payload: CreateMealDto): Promise<MealHistoryEntry> {
-    return this.repository.createMeal(payload);
+  async createMeal(userId: string, payload: CreateMealDto): Promise<MealHistoryEntry> {
+    return this.repository.createMeal(userId, payload);
   }
 }

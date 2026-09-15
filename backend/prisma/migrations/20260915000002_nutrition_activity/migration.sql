@@ -1,0 +1,1 @@
+ALTER TABLE "Onboarding" ADD COLUMN "dailyActivity" TEXT;

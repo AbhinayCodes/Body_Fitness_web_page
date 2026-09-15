@@ -1,0 +1,242 @@
+BODY FITNESS - TECHNICAL OVERVIEW
+=================================
+
+Snapshot
+--------
+This document describes the technology and implementation currently present in
+the repository as of 2026-09-15. The project is in an active migration from a
+small static JavaScript prototype to a typed Next.js frontend backed by a
+NestJS, Prisma, and PostgreSQL API.
+
+
+1. APPLICATION ARCHITECTURE
+---------------------------
+
+The repository contains two separate Node.js applications:
+
+1. Frontend: the repository root
+   - Next.js App Router
+   - React client components
+   - TypeScript
+   - CSS in styles.css
+
+2. Backend: the backend/ directory
+   - NestJS REST API
+   - Prisma ORM
+   - PostgreSQL database
+   - TypeScript
+
+The browser frontend calls the API over HTTP. The default API base URL is:
+
+    http://127.0.0.1:8000/api/v1
+
+The backend also keeps compatibility routes for some older /api endpoints.
+
+
+2. FRONTEND TECHNOLOGY
+-----------------------
+
+Framework and runtime:
+   - Next.js with the App Router
+   - React
+   - TypeScript with strict mode enabled
+   - React Strict Mode enabled in next.config.ts
+
+Application structure:
+   - app/layout.tsx: root layout, metadata, and global CSS import
+   - app/page.tsx: home page entry point
+   - components/: dashboard, navigation, plans, modals, and onboarding UI
+   - hooks/useFitnessState.ts: client-side fitness state and API actions
+   - lib/api.ts: typed fetch wrapper and fitness API methods
+   - types/fitness.ts: frontend domain types
+
+Implemented frontend views:
+   - Today/dashboard
+   - Workout plan
+   - Nutrition/diet plan
+   - Calendar
+   - Progress
+   - Profile
+
+Implemented frontend interactions:
+   - Desktop sidebar navigation
+   - Mobile navigation
+   - Workout exercise completion toggles
+   - Workout completion and API submission
+   - Meal logging and API submission
+   - Profile editing through the onboarding modal
+   - Loading, saving, and dismissible API error states
+   - Responsive layout styling
+
+Frontend state model:
+   - React useState and useEffect
+   - A custom useFitnessState hook
+   - Local UI state for the active view, modal, onboarding step, completed
+     exercises, meal status, and profile
+   - Initial state fallback for a prototype user
+   - API hydration on initial load
+
+Frontend API methods currently include:
+   - GET /state
+   - PUT /profile
+   - POST /meals
+   - POST /workouts
+   - GET /onboarding
+   - PUT /onboarding
+
+Frontend configuration:
+   - NEXT_PUBLIC_API_URL controls the API base URL
+   - The TypeScript @/* path alias points to the repository root
+   - CSS uses the existing styles.css design system and responsive rules
+
+
+3. BACKEND TECHNOLOGY
+---------------------
+
+Framework and libraries:
+   - NestJS core and Express platform adapter
+   - TypeScript
+   - Prisma Client 6.19.2
+   - PostgreSQL driver through Prisma
+   - class-validator and class-transformer for request validation
+   - Joi for environment validation
+   - @nestjs/config for configuration loading
+   - RxJS and reflect-metadata required by NestJS
+
+Backend modules currently registered:
+   - AuthModule
+   - DataAccessModule
+   - OnboardingModule
+   - ActivityModule
+   - StateModule
+   - ProfileModule
+   - WorkoutModule
+   - MealModule
+
+Backend responsibilities:
+   - HTTP controllers expose versioned API endpoints
+   - Services hold feature-specific application logic
+   - DTOs define and validate incoming request payloads
+   - FitnessRepository translates between API models and Prisma models
+   - PrismaService manages database connections and lifecycle
+
+HTTP and validation configuration:
+   - API listens on 127.0.0.1:8000 by default
+   - PORT can override the default port
+   - CORS is enabled for local frontend development
+   - A global ValidationPipe transforms payloads, strips unknown fields, and
+     rejects non-whitelisted fields
+
+
+4. AUTHENTICATION AND SECURITY BUILDING BLOCKS
+----------------------------------------------
+
+The backend includes authentication infrastructure:
+   - JWT service for access-token signing
+   - bcrypt password hashing with cost factor 12
+   - bcrypt password verification
+   - JWT payloads contain the user ID in the sub claim
+   - JWT_SECRET is required and must be at least 32 characters
+
+The current fitness repository still uses a default prototype user key for
+the main state flow. Full request authentication and user scoping are therefore
+prepared in the backend but are not yet the complete production login flow.
+
+
+5. DATABASE AND DATA MODEL
+--------------------------
+
+Database:
+   - PostgreSQL
+   - Prisma schema and migrations under backend/prisma/
+   - Prisma client generated from schema.prisma
+   - Seed command configured with tsx prisma/seed.ts
+
+Current Prisma models:
+   - User
+   - Profile
+   - Onboarding
+   - WorkoutSession
+   - ExerciseCompletion
+   - MealLog
+   - ActivitySummary
+
+Data design includes:
+   - UUID primary keys
+   - User relationships with cascading deletes
+   - Workout and meal history indexed by user and date
+   - Unique profile and onboarding records per user
+   - Unique exercise completion per workout and exercise index
+   - Created and updated timestamps on persisted entities
+
+Database commands in backend/package.json:
+   - npm run db:generate
+   - npm run db:migrate
+   - npm run db:seed
+
+Required backend environment variables:
+   - DATABASE_URL: PostgreSQL connection string
+   - JWT_SECRET: secret with at least 32 characters
+   - PORT: optional API port, default 8000
+
+
+6. PROJECT TOOLING
+------------------
+
+Root scripts:
+   - npm run dev: start the Next.js development server
+   - npm run build: create a production frontend build
+   - npm start: serve the production frontend build
+   - npm run typecheck: run tsc --noEmit
+
+Backend scripts:
+   - npm run build: compile the NestJS API
+   - npm run start:dev: run the API in watch mode
+   - npm start: run the compiled API
+   - npm test: run the Jest test command
+
+TypeScript configuration:
+   - Strict type checking is enabled for the frontend
+   - No emitted JavaScript for the frontend typecheck
+   - Backend has separate TypeScript and build configurations
+   - Frontend excludes the backend directory from its TypeScript project
+
+Current verification:
+   - Root frontend typecheck passes with npm.cmd run typecheck
+
+
+7. LEGACY PROTOTYPE STILL PRESENT
+----------------------------------
+
+The repository still contains the original prototype implementation:
+   - index.html
+   - app.js
+   - styles.css
+   - data.json
+   - server.py
+   - server.ps1
+
+That prototype used browser-rendered HTML, a flat JSON data file, and either a
+Python or PowerShell HTTP server. The newer Next.js and NestJS applications are
+the migration direction, while some UI copy and behavior still reflects the
+older Formwell prototype.
+
+
+8. CURRENT LIMITATIONS AND NEXT TECHNICAL WORK
+-----------------------------------------------
+
+   - The frontend still contains hardcoded workout, meal, calendar, progress,
+     macro, and schedule content in some views.
+   - Workout duration is currently submitted as a default 52 minutes.
+   - Exercise history stores numeric exercise indexes rather than stable
+     exercise records.
+   - The frontend profile flow and the richer backend onboarding model are not
+     fully unified yet.
+   - The default prototype user is still used by the repository data path.
+   - Authentication infrastructure exists, but a complete login and protected
+     request flow still needs to be connected.
+   - Frontend and backend dependencies are installed separately.
+   - Dependency versions using "latest" are not fully reproducible; pinning
+     versions would improve build stability.
+   - The old Python/PowerShell server and flat JSON store should be retired
+     after migration parity is confirmed.

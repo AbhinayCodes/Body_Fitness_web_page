@@ -7,7 +7,7 @@ import type { UpdateProfileDto } from './dto/update-profile.dto';
 export class ProfileService {
   constructor(private readonly repository: FitnessRepository) {}
 
-  async updateProfile(payload: UpdateProfileDto): Promise<Profile> {
-    return this.repository.updateProfile(payload);
+  async updateProfile(userId: string, payload: UpdateProfileDto): Promise<Profile> {
+    return this.repository.updateProfile(userId, payload);
   }
 }

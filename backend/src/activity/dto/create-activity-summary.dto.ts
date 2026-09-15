@@ -1,6 +1,6 @@
 import { IsDateString, IsEnum, IsInt, IsOptional, IsPositive, Max, Min } from 'class-validator';
 
-export enum ActivitySource { APPLE_HEALTH = 'APPLE_HEALTH', HEALTH_CONNECT = 'HEALTH_CONNECT', MANUAL = 'MANUAL' }
+export enum ActivitySource { HEALTHKIT = 'HEALTHKIT', HEALTH_CONNECT = 'HEALTH_CONNECT', WEARABLE = 'WEARABLE', MANUAL = 'MANUAL' }
 
 export class CreateActivitySummaryDto {
   @IsEnum(ActivitySource) source!: ActivitySource;

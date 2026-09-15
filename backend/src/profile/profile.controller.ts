@@ -1,4 +1,6 @@
-import { Body, Controller, Put } from '@nestjs/common';
+import { Body, Controller, Put, UseGuards } from '@nestjs/common';
+import { CurrentUserId } from '../auth/authenticated-user.decorator';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { ProfileService } from './profile.service';
 
@@ -7,7 +9,8 @@ export class ProfileController {
   constructor(private readonly profileService: ProfileService) {}
 
   @Put()
-  updateProfile(@Body() payload: UpdateProfileDto) {
-    return this.profileService.updateProfile(payload);
+  @UseGuards(JwtAuthGuard)
+  updateProfile(@CurrentUserId() userId: string, @Body() payload: UpdateProfileDto) {
+    return this.profileService.updateProfile(userId, payload);
   }
 }

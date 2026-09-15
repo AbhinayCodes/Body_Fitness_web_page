@@ -1,4 +1,6 @@
-import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
+import { Body, Controller, HttpCode, HttpStatus, Post, UseGuards } from '@nestjs/common';
+import { CurrentUserId } from '../auth/authenticated-user.decorator';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CreateMealDto } from './dto/create-meal.dto';
 import { MealService } from './meal.service';
 
@@ -8,7 +10,8 @@ export class MealController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  createMeal(@Body() payload: CreateMealDto) {
-    return this.mealService.createMeal(payload);
+  @UseGuards(JwtAuthGuard)
+  createMeal(@CurrentUserId() userId: string, @Body() payload: CreateMealDto) {
+    return this.mealService.createMeal(userId, payload);
   }
 }

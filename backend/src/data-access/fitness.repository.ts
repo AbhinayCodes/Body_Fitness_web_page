@@ -6,14 +6,12 @@ import type { CreateWorkoutDto } from '../workout/dto/create-workout.dto';
 import { DEFAULT_STATE, type FitnessState, type MealHistoryEntry, type Profile, type WorkoutHistoryEntry } from './fitness-state.types';
 import { PrismaService } from './prisma.service';
 
-const DEFAULT_USER_KEY = 'prototype-user';
-
 @Injectable()
 export class FitnessRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async getState(): Promise<FitnessState> {
-    const user = await this.getUser();
+  async getState(userId: string): Promise<FitnessState> {
+    const user = await this.getUser(userId);
     return {
       profile: this.toProfile(user.profile),
       mealDone: user.mealDone,
@@ -26,8 +24,8 @@ export class FitnessRepository {
     };
   }
 
-  async updateProfile(payload: UpdateProfileDto): Promise<Profile> {
-    const user = await this.getUser();
+  async updateProfile(userId: string, payload: UpdateProfileDto): Promise<Profile> {
+    const user = await this.getUser(userId);
     const profile = await this.prisma.profile.update({
       where: { userId: user.id },
       data: payload,
@@ -35,8 +33,8 @@ export class FitnessRepository {
     return this.toProfile(profile);
   }
 
-  async createWorkout(payload: CreateWorkoutDto): Promise<WorkoutHistoryEntry> {
-    const user = await this.getUser();
+  async createWorkout(userId: string, payload: CreateWorkoutDto): Promise<WorkoutHistoryEntry> {
+    const user = await this.getUser(userId);
     const workout = await this.prisma.workoutSession.create({
       data: {
         userId: user.id,
@@ -49,8 +47,8 @@ export class FitnessRepository {
     return { date: this.toDateString(workout.date), exercises: workout.exercises.map((exercise) => exercise.exerciseIndex), durationMinutes: workout.durationMinutes };
   }
 
-  async createMeal(payload: CreateMealDto): Promise<MealHistoryEntry> {
-    const user = await this.getUser();
+  async createMeal(userId: string, payload: CreateMealDto): Promise<MealHistoryEntry> {
+    const user = await this.getUser(userId);
     const meal = await this.prisma.$transaction(async (transaction) => {
       await transaction.user.update({ where: { id: user.id }, data: { mealDone: true } });
       return transaction.mealLog.create({ data: { userId: user.id, date: new Date(), meal: payload.meal ?? 'Paneer rice bowl' } });
@@ -58,14 +56,9 @@ export class FitnessRepository {
     return { date: this.toDateString(meal.date), meal: meal.meal };
   }
 
-  private async getUser() {
-    await this.prisma.user.upsert({
-      where: { key: DEFAULT_USER_KEY },
-      update: {},
-      create: { key: DEFAULT_USER_KEY, profile: { create: DEFAULT_STATE.profile } },
-    });
+  private async getUser(userId: string) {
     return this.prisma.user.findUniqueOrThrow({
-      where: { key: DEFAULT_USER_KEY },
+      where: { id: userId },
       include: {
         profile: true,
         workoutSessions: { orderBy: [{ date: 'asc' }, { createdAt: 'asc' }], include: { exercises: { orderBy: { exerciseIndex: 'asc' } } } },

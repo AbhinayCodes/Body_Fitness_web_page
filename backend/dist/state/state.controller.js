@@ -8,24 +8,31 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.StateController = void 0;
 const common_1 = require("@nestjs/common");
+const authenticated_user_decorator_1 = require("../auth/authenticated-user.decorator");
+const jwt_auth_guard_1 = require("../auth/jwt-auth.guard");
 const state_service_1 = require("./state.service");
 let StateController = class StateController {
     stateService;
     constructor(stateService) {
         this.stateService = stateService;
     }
-    getState() {
-        return this.stateService.getState();
+    getState(userId) {
+        return this.stateService.getState(userId);
     }
 };
 exports.StateController = StateController;
 __decorate([
     (0, common_1.Get)(),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    __param(0, (0, authenticated_user_decorator_1.CurrentUserId)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
+    __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], StateController.prototype, "getState", null);
 exports.StateController = StateController = __decorate([

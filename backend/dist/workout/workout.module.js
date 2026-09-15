@@ -10,10 +10,12 @@ exports.WorkoutModule = void 0;
 const common_1 = require("@nestjs/common");
 const workout_controller_1 = require("./workout.controller");
 const workout_service_1 = require("./workout.service");
+const workout_plan_service_1 = require("./workout-plan.service");
+const workout_planner_service_1 = require("./workout-planner.service");
 let WorkoutModule = class WorkoutModule {
 };
 exports.WorkoutModule = WorkoutModule;
 exports.WorkoutModule = WorkoutModule = __decorate([
-    (0, common_1.Module)({ controllers: [workout_controller_1.WorkoutController], providers: [workout_service_1.WorkoutService] })
+    (0, common_1.Module)({ controllers: [workout_controller_1.WorkoutController], providers: [workout_service_1.WorkoutService, workout_plan_service_1.WorkoutPlanService, workout_planner_service_1.WorkoutPlannerService], exports: [workout_plan_service_1.WorkoutPlanService] })
 ], WorkoutModule);
 //# sourceMappingURL=workout.module.js.map

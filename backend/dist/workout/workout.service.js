@@ -11,25 +11,38 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.WorkoutService = void 0;
 const common_1 = require("@nestjs/common");
-const fitness_state_repository_1 = require("../data-access/fitness-state.repository");
+const prisma_service_1 = require("../data-access/prisma.service");
+const fitness_repository_1 = require("../data-access/fitness.repository");
 let WorkoutService = class WorkoutService {
     repository;
-    constructor(repository) {
+    prisma;
+    constructor(repository, prisma) {
         this.repository = repository;
+        this.prisma = prisma;
     }
-    async createWorkout(payload) {
-        const entry = {
-            date: new Date().toISOString().slice(0, 10),
-            exercises: payload.exercises ?? [],
-            durationMinutes: payload.durationMinutes ?? 52,
-        };
-        await this.repository.updateState((state) => state.workoutHistory.push(entry));
-        return entry;
+    async createWorkout(userId, payload) {
+        return this.repository.createWorkout(userId, payload);
+    }
+    async updateTodayProgress(userId, payload) {
+        const planDay = await this.prisma.workoutPlanDay.findFirst({ where: { id: payload.workoutPlanDayId, workoutPlan: { userId } }, include: { exercises: true } });
+        if (!planDay)
+            throw new common_1.BadRequestException('Workout plan day not found.');
+        const validIndexes = new Set(planDay.exercises.map((exercise) => exercise.exerciseOrder));
+        if (payload.exercises.some((exercise) => !validIndexes.has(exercise.exerciseIndex)))
+            throw new common_1.BadRequestException('Workout progress contains an invalid exercise.');
+        const date = new Date();
+        const existing = await this.prisma.workoutSession.findFirst({ where: { userId, workoutPlanDayId: planDay.id, date }, select: { id: true } });
+        const session = existing
+            ? await this.prisma.workoutSession.update({ where: { id: existing.id }, data: { durationMinutes: planDay.estimatedMinutes } })
+            : await this.prisma.workoutSession.create({ data: { userId, workoutPlanDayId: planDay.id, date, durationMinutes: planDay.estimatedMinutes } });
+        for (const exercise of payload.exercises)
+            await this.prisma.exerciseCompletion.upsert({ where: { workoutSessionId_exerciseIndex: { workoutSessionId: session.id, exerciseIndex: exercise.exerciseIndex } }, update: { setsCompleted: exercise.setsCompleted }, create: { workoutSessionId: session.id, exerciseIndex: exercise.exerciseIndex, setsCompleted: exercise.setsCompleted } });
+        return this.prisma.workoutSession.findUniqueOrThrow({ where: { id: session.id }, include: { exercises: { orderBy: { exerciseIndex: 'asc' } } } });
     }
 };
 exports.WorkoutService = WorkoutService;
 exports.WorkoutService = WorkoutService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [fitness_state_repository_1.FitnessStateRepository])
+    __metadata("design:paramtypes", [fitness_repository_1.FitnessRepository, prisma_service_1.PrismaService])
 ], WorkoutService);
 //# sourceMappingURL=workout.service.js.map

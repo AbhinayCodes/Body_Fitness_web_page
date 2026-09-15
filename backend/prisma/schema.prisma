@@ -10,15 +10,40 @@ datasource db {
 model User {
   id               String           @id @default(uuid()) @db.Uuid
   key              String           @unique
+  phoneNumber      String?          @unique
   passwordHash     String?
   mealDone         Boolean          @default(false)
   profile          Profile?
   onboarding       Onboarding?
   workoutSessions  WorkoutSession[]
+  workoutPlans     WorkoutPlan[]
+  dailySchedules   DailySchedule[]
+  progressCheckIns ProgressCheckIn[]
+  progressSettings ProgressSettings?
+  exercisePerformances ExercisePerformance[]
+  reminderSettings ReminderSettings?
+  reminderOccurrences ReminderOccurrence[]
   mealLogs         MealLog[]
   activitySummaries ActivitySummary[]
+  activitySettings ActivitySettings?
+  otpChallenges    OtpChallenge[]
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
+}
+
+model OtpChallenge {
+  id          String    @id @default(uuid()) @db.Uuid
+  phoneNumber String
+  codeHash    String
+  expiresAt   DateTime
+  attempts    Int       @default(0)
+  consumedAt  DateTime?
+  createdAt   DateTime  @default(now())
+  userId      String?   @db.Uuid
+  user        User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([phoneNumber, createdAt])
+  @@index([phoneNumber, expiresAt])
 }
 
 model Profile {
@@ -38,18 +63,95 @@ model WorkoutSession {
   userId          String               @db.Uuid
   date            DateTime             @db.Date
   durationMinutes Int
+  workoutPlanDayId String?            @db.Uuid
   user            User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workoutPlanDay  WorkoutPlanDay?      @relation(fields: [workoutPlanDayId], references: [id], onDelete: SetNull)
   exercises       ExerciseCompletion[]
   createdAt       DateTime             @default(now())
   updatedAt       DateTime             @updatedAt
 
   @@index([userId, date])
+  @@index([userId, workoutPlanDayId, date])
+}
+
+enum ExerciseDifficulty {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+model Exercise {
+  id                 String             @id @default(uuid()) @db.Uuid
+  slug               String             @unique
+  name               String
+  muscleGroups       String[]
+  movementPattern    String
+  equipment          String[]
+  locations          String[]
+  difficulty         ExerciseDifficulty
+  suitableGoals      String[]
+  contraindicationNotes String?
+  instructions       String[]
+  estimatedMinutes   Int
+  planExercises      WorkoutPlanExercise[]
+  performances      ExercisePerformance[]
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+}
+
+model WorkoutPlan {
+  id                 String             @id @default(uuid()) @db.Uuid
+  userId             String             @db.Uuid
+  sourceFingerprint  String
+  goal               String
+  experience         String
+  durationMinutes    Int
+  trainingLocation   String
+  trainingDays       String[]
+  days               WorkoutPlanDay[]
+  user               User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  @@unique([userId, sourceFingerprint])
+  @@index([userId, createdAt])
+}
+
+model WorkoutPlanDay {
+  id                 String             @id @default(uuid()) @db.Uuid
+  workoutPlanId      String             @db.Uuid
+  weekday            String
+  dayOrder           Int
+  title              String
+  targetMuscleGroups String[]
+  estimatedMinutes   Int
+  exercises          WorkoutPlanExercise[]
+  workoutPlan        WorkoutPlan        @relation(fields: [workoutPlanId], references: [id], onDelete: Cascade)
+  dailySchedules     DailySchedule[]
+  workoutSessions    WorkoutSession[]
+
+  @@unique([workoutPlanId, weekday])
+}
+
+model WorkoutPlanExercise {
+  id                 String             @id @default(uuid()) @db.Uuid
+  workoutPlanDayId   String             @db.Uuid
+  exerciseId         String             @db.Uuid
+  exerciseOrder      Int
+  sets               Int
+  reps               String
+  restSeconds        Int
+  workoutPlanDay     WorkoutPlanDay     @relation(fields: [workoutPlanDayId], references: [id], onDelete: Cascade)
+  exercise           Exercise           @relation(fields: [exerciseId], references: [id], onDelete: Restrict)
+
+  @@unique([workoutPlanDayId, exerciseOrder])
 }
 
 model ExerciseCompletion {
   id                String         @id @default(uuid()) @db.Uuid
   workoutSessionId  String         @db.Uuid
   exerciseIndex     Int
+  setsCompleted     Int            @default(0)
   workoutSession    WorkoutSession @relation(fields: [workoutSessionId], references: [id], onDelete: Cascade)
   createdAt         DateTime       @default(now())
 
@@ -77,6 +179,7 @@ model Onboarding {
   weightKg               Int?
   primaryGoal            String?
   secondaryGoal          String?
+  secondaryGoals         String[] @default([])
   trainingExperience     String?
   trainingDays           String[]
   workoutDurationMinutes Int?
@@ -89,6 +192,7 @@ model Onboarding {
   workSchedule           String?
   preferredGymTime       String?
   sleepTime              String?
+  dailyActivity          String?
   currentStep            Int      @default(1)
   completed              Boolean  @default(false)
   user                   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -114,4 +218,198 @@ model ActivitySummary {
 
   @@index([userId, recordedAt])
   @@index([userId, source, recordedAt])
+  @@unique([userId, source, recordedAt])
+}
+
+model ActivitySettings {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @unique @db.Uuid
+  stepGoal  Int      @default(8000)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum RecipeMealCategory {
+  BREAKFAST
+  LUNCH
+  SNACK
+  DINNER
+  PRE_WORKOUT
+  POST_WORKOUT
+}
+
+enum RecipeDietType {
+  VEGETARIAN
+  NON_VEGETARIAN
+  VEGAN
+}
+
+model Recipe {
+  id                    String             @id @default(uuid()) @db.Uuid
+  slug                  String             @unique
+  name                  String
+  mealCategory          RecipeMealCategory
+  dietType              RecipeDietType
+  regionalCuisines      String[]           @default([])
+  preparationMinutes    Int
+  servingDescription    String
+  servingGrams          Int?
+  calories              Int
+  proteinGrams          Decimal            @db.Decimal(6, 1)
+  carbohydrateGrams     Decimal            @db.Decimal(6, 1)
+  fatGrams              Decimal            @db.Decimal(6, 1)
+  fiberGrams            Decimal            @db.Decimal(6, 1)
+  allergens             String[]           @default([])
+  tags                  String[]           @default([])
+  preparationSteps      String[]
+  nutritionBasis        String
+  ingredients           RecipeIngredient[]
+  scheduledMeals        DailyScheduleMeal[]
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
+
+  @@index([dietType, mealCategory])
+}
+
+model Ingredient {
+  id                    String             @id @default(uuid()) @db.Uuid
+  name                  String             @unique
+  standardUnit          String
+  caloriesPer100g       Decimal?           @db.Decimal(7, 2)
+  proteinGramsPer100g   Decimal?           @db.Decimal(6, 2)
+  carbohydrateGramsPer100g Decimal?        @db.Decimal(6, 2)
+  fatGramsPer100g       Decimal?           @db.Decimal(6, 2)
+  fiberGramsPer100g     Decimal?           @db.Decimal(6, 2)
+  nutritionSource       String?
+  recipeIngredients     RecipeIngredient[]
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
+}
+
+model RecipeIngredient {
+  recipeId              String             @db.Uuid
+  ingredientId          String             @db.Uuid
+  quantity              Decimal            @db.Decimal(8, 2)
+  unit                  String
+  recipe                Recipe             @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  ingredient            Ingredient         @relation(fields: [ingredientId], references: [id], onDelete: Restrict)
+
+  @@id([recipeId, ingredientId])
+  @@index([ingredientId])
+}
+
+model DailySchedule {
+  id                 String             @id @default(uuid()) @db.Uuid
+  userId             String             @db.Uuid
+  date               DateTime           @db.Date
+  sourceFingerprint  String
+  isTrainingDay      Boolean
+  workoutPlanDayId   String?            @db.Uuid
+  meals              DailyScheduleMeal[]
+  user               User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workoutPlanDay     WorkoutPlanDay?    @relation(fields: [workoutPlanDayId], references: [id], onDelete: SetNull)
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  @@unique([userId, date, sourceFingerprint])
+  @@index([userId, date])
+}
+
+model DailyScheduleMeal {
+  id                 String             @id @default(uuid()) @db.Uuid
+  dailyScheduleId    String             @db.Uuid
+  slot               String
+  scheduledMinutes   Int
+  targetCalories     Int
+  recipeId           String             @db.Uuid
+  alternativeRecipeIds String[]          @default([])
+  eatenAt            DateTime?
+  dailySchedule      DailySchedule      @relation(fields: [dailyScheduleId], references: [id], onDelete: Cascade)
+  recipe             Recipe             @relation(fields: [recipeId], references: [id], onDelete: Restrict)
+
+  @@unique([dailyScheduleId, slot])
+  @@index([recipeId])
+}
+
+model ProgressSettings {
+  id                 String             @id @default(uuid()) @db.Uuid
+  userId             String             @unique @db.Uuid
+  checkInFrequencyDays Int               @default(7)
+  user               User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+}
+
+model ProgressCheckIn {
+  id                 String             @id @default(uuid()) @db.Uuid
+  userId             String             @db.Uuid
+  recordedAt         DateTime           @db.Date
+  weightKg           Decimal            @db.Decimal(5, 2)
+  measurements       BodyMeasurement[]
+  user               User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  @@unique([userId, recordedAt])
+  @@index([userId, recordedAt])
+}
+
+model BodyMeasurement {
+  id                 String             @id @default(uuid()) @db.Uuid
+  progressCheckInId  String             @db.Uuid
+  type               String
+  valueCm            Decimal            @db.Decimal(5, 2)
+  progressCheckIn    ProgressCheckIn    @relation(fields: [progressCheckInId], references: [id], onDelete: Cascade)
+
+  @@unique([progressCheckInId, type])
+}
+
+model ExercisePerformance {
+  id                 String             @id @default(uuid()) @db.Uuid
+  userId             String             @db.Uuid
+  exerciseId         String             @db.Uuid
+  recordedAt         DateTime           @db.Date
+  sets               Int
+  reps               Int
+  weightKg           Decimal?           @db.Decimal(6, 2)
+  user               User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  exercise           Exercise           @relation(fields: [exerciseId], references: [id], onDelete: Restrict)
+  createdAt          DateTime           @default(now())
+
+  @@index([userId, exerciseId, recordedAt])
+}
+
+model ReminderSettings {
+  id                 String             @id @default(uuid()) @db.Uuid
+  userId             String             @unique @db.Uuid
+  timezone           String             @default("Asia/Kolkata")
+  workoutEnabled     Boolean            @default(false)
+  mealEnabled        Boolean            @default(false)
+  preWorkoutEnabled  Boolean            @default(false)
+  postWorkoutEnabled Boolean            @default(false)
+  checkInEnabled     Boolean            @default(false)
+  workoutLeadMinutes Int                @default(30)
+  mealLeadMinutes    Int                @default(10)
+  checkInTime        String             @default("09:00")
+  user               User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+}
+
+model ReminderOccurrence {
+  id                 String             @id @default(uuid()) @db.Uuid
+  userId             String             @db.Uuid
+  kind               String
+  sourceKey          String
+  scheduledLocalDate String
+  scheduledMinutes   Int
+  timezone           String
+  payload            String
+  acknowledgedAt     DateTime?
+  user               User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt          DateTime           @default(now())
+
+  @@unique([userId, kind, sourceKey, scheduledLocalDate])
+  @@index([userId, scheduledLocalDate, scheduledMinutes])
 }

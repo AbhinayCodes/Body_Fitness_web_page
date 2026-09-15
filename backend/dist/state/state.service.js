@@ -11,19 +11,19 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.StateService = void 0;
 const common_1 = require("@nestjs/common");
-const fitness_state_repository_1 = require("../data-access/fitness-state.repository");
+const fitness_repository_1 = require("../data-access/fitness.repository");
 let StateService = class StateService {
     repository;
     constructor(repository) {
         this.repository = repository;
     }
-    getState() {
-        return this.repository.getState();
+    getState(userId) {
+        return this.repository.getState(userId);
     }
 };
 exports.StateService = StateService;
 exports.StateService = StateService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [fitness_state_repository_1.FitnessStateRepository])
+    __metadata("design:paramtypes", [fitness_repository_1.FitnessRepository])
 ], StateService);
 //# sourceMappingURL=state.service.js.map

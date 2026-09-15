@@ -1,6 +1,8 @@
 import { PrismaClient } from '@prisma/client';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import { seedRecipeCatalog } from './recipe-catalog.seed';
+import { seedExerciseCatalog } from './exercise-catalog.seed';
 
 type PrototypeState = {
   profile?: { name?: string; goal?: string; days?: string; diet?: string };
@@ -45,6 +47,8 @@ async function main() {
   for (const meal of state.mealHistory ?? []) {
     await prisma.mealLog.create({ data: { userId: user.id, date: new Date(`${meal.date}T00:00:00.000Z`), meal: meal.meal } });
   }
+  await seedRecipeCatalog(prisma);
+  await seedExerciseCatalog(prisma);
 }
 
 main().finally(() => prisma.$disconnect());
