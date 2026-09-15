@@ -18,12 +18,12 @@ export declare class ProgressController {
                     valueCm: import("@prisma/client/runtime/library").Decimal;
                 }[];
             } & {
-                recordedAt: Date;
                 id: string;
-                userId: string;
                 createdAt: Date;
                 updatedAt: Date;
+                userId: string;
                 weightKg: import("@prisma/client/runtime/library").Decimal;
+                recordedAt: Date;
             }) | null;
             previous: ({
                 measurements: {
@@ -33,12 +33,12 @@ export declare class ProgressController {
                     valueCm: import("@prisma/client/runtime/library").Decimal;
                 }[];
             } & {
-                recordedAt: Date;
                 id: string;
-                userId: string;
                 createdAt: Date;
                 updatedAt: Date;
+                userId: string;
                 weightKg: import("@prisma/client/runtime/library").Decimal;
+                recordedAt: Date;
             }) | null;
             weightChangeKg: number | null;
             note: string;
@@ -71,28 +71,28 @@ export declare class ProgressController {
             valueCm: import("@prisma/client/runtime/library").Decimal;
         }[];
     } & {
-        recordedAt: Date;
         id: string;
-        userId: string;
         createdAt: Date;
         updatedAt: Date;
+        userId: string;
         weightKg: import("@prisma/client/runtime/library").Decimal;
+        recordedAt: Date;
     }>;
     settings(userId: string, payload: UpdateProgressSettingsDto): Promise<{
         id: string;
-        userId: string;
         createdAt: Date;
         updatedAt: Date;
+        userId: string;
         checkInFrequencyDays: number;
     }>;
     performance(userId: string, payload: CreateExercisePerformanceDto): Promise<{
-        recordedAt: Date;
         id: string;
-        userId: string;
         createdAt: Date;
+        userId: string;
         weightKg: import("@prisma/client/runtime/library").Decimal | null;
-        exerciseId: string;
         sets: number;
         reps: number;
+        exerciseId: string;
+        recordedAt: Date;
     }>;
 }

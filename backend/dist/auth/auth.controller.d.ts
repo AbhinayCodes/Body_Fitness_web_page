@@ -5,6 +5,14 @@ export declare class AuthController {
     private readonly authService;
     constructor(authService: AuthService);
     sendOtp(payload: SendOtpDto): Promise<void>;
+    loginWithPhone(payload: SendOtpDto): Promise<{
+        accessToken: string;
+        isNewUser: boolean;
+        user: {
+            id: string;
+            phoneNumber: string;
+        };
+    }>;
     verifyOtp(payload: VerifyOtpDto): Promise<{
         accessToken: string;
         isNewUser: boolean;

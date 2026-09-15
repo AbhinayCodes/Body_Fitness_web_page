@@ -33,6 +33,7 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
 }
 
 export const fitnessApi = {
+  loginWithPhone: (phoneNumber: string) => request<AuthResult>('/auth/phone-login', { method: 'POST', body: JSON.stringify({ phoneNumber }) }),
   sendOtp: (phoneNumber: string) => request<void>('/auth/send-otp', { method: 'POST', body: JSON.stringify({ phoneNumber }) }),
   verifyOtp: (phoneNumber: string, code: string) => request<AuthResult>('/auth/verify-otp', { method: 'POST', body: JSON.stringify({ phoneNumber, code }) }),
   getCurrentUser: () => request<CurrentUser>('/auth/me'),

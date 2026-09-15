@@ -25,6 +25,7 @@ let AuthController = class AuthController {
         this.authService = authService;
     }
     async sendOtp(payload) { await this.authService.sendOtp(payload.phoneNumber); }
+    loginWithPhone(payload) { return this.authService.loginWithPhone(payload.phoneNumber); }
     verifyOtp(payload) { return this.authService.verifyOtp(payload.phoneNumber, payload.code); }
     me(userId) { return this.authService.getCurrentUser(userId); }
 };
@@ -37,6 +38,13 @@ __decorate([
     __metadata("design:paramtypes", [send_otp_dto_1.SendOtpDto]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "sendOtp", null);
+__decorate([
+    (0, common_1.Post)('phone-login'),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [send_otp_dto_1.SendOtpDto]),
+    __metadata("design:returntype", void 0)
+], AuthController.prototype, "loginWithPhone", null);
 __decorate([
     (0, common_1.Post)('verify-otp'),
     __param(0, (0, common_1.Body)()),

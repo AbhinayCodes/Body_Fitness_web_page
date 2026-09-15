@@ -91,6 +91,12 @@ let AuthService = class AuthService {
         const code = developmentCode ?? (0, node_crypto_1.randomInt)(100000, 1_000_000).toString();
         await this.prisma.otpChallenge.create({ data: { phoneNumber, codeHash: await bcrypt.hash(code, 12), expiresAt: new Date(now.getTime() + 5 * 60_000) } });
     }
+    async loginWithPhone(rawPhoneNumber) {
+        const phoneNumber = normalizeIndianPhone(rawPhoneNumber);
+        const existingUser = await this.prisma.user.findUnique({ where: { phoneNumber } });
+        const user = existingUser ?? await this.prisma.user.create({ data: { key: `phone:${phoneNumber}`, phoneNumber, profile: { create: { name: 'Member', goal: 'Build muscle', days: '4 days / week', diet: 'Vegetarian' } } } });
+        return { accessToken: await this.signAccessToken(user.id), isNewUser: !existingUser, user: { id: user.id, phoneNumber } };
+    }
     async verifyOtp(rawPhoneNumber, code) {
         const phoneNumber = normalizeIndianPhone(rawPhoneNumber);
         const challenge = await this.prisma.otpChallenge.findFirst({ where: { phoneNumber, consumedAt: null }, orderBy: { createdAt: 'desc' } });

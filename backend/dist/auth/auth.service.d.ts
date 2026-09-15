@@ -11,6 +11,14 @@ export declare class AuthService {
     signAccessToken(userId: string): Promise<string>;
     verifyAccessToken(token: string): Promise<string>;
     sendOtp(rawPhoneNumber: string): Promise<void>;
+    loginWithPhone(rawPhoneNumber: string): Promise<{
+        accessToken: string;
+        isNewUser: boolean;
+        user: {
+            id: string;
+            phoneNumber: string;
+        };
+    }>;
     verifyOtp(rawPhoneNumber: string, code: string): Promise<{
         accessToken: string;
         isNewUser: boolean;

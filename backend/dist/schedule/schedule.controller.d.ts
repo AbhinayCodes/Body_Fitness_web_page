@@ -4,42 +4,6 @@ export declare class ScheduleController {
     private readonly schedules;
     constructor(schedules: ScheduleService);
     getToday(userId: string): Promise<import("../nutrition/nutrition-calculation.types").CalculationResult | ({
-        workoutPlanDay: ({
-            exercises: ({
-                exercise: {
-                    id: string;
-                    createdAt: Date;
-                    updatedAt: Date;
-                    name: string;
-                    equipment: string[];
-                    slug: string;
-                    muscleGroups: string[];
-                    movementPattern: string;
-                    locations: string[];
-                    difficulty: import("@prisma/client").$Enums.ExerciseDifficulty;
-                    suitableGoals: string[];
-                    contraindicationNotes: string | null;
-                    instructions: string[];
-                    estimatedMinutes: number;
-                };
-            } & {
-                id: string;
-                workoutPlanDayId: string;
-                exerciseId: string;
-                sets: number;
-                reps: string;
-                exerciseOrder: number;
-                restSeconds: number;
-            })[];
-        } & {
-            id: string;
-            estimatedMinutes: number;
-            workoutPlanId: string;
-            weekday: string;
-            dayOrder: number;
-            title: string;
-            targetMuscleGroups: string[];
-        }) | null;
         meals: ({
             recipe: {
                 id: string;
@@ -65,19 +29,55 @@ export declare class ScheduleController {
             };
         } & {
             id: string;
-            recipeId: string;
-            dailyScheduleId: string;
             slot: string;
             scheduledMinutes: number;
             targetCalories: number;
             alternativeRecipeIds: string[];
             eatenAt: Date | null;
+            recipeId: string;
+            dailyScheduleId: string;
         })[];
+        workoutPlanDay: ({
+            exercises: ({
+                exercise: {
+                    id: string;
+                    createdAt: Date;
+                    updatedAt: Date;
+                    name: string;
+                    equipment: string[];
+                    estimatedMinutes: number;
+                    slug: string;
+                    muscleGroups: string[];
+                    movementPattern: string;
+                    locations: string[];
+                    difficulty: import("@prisma/client").$Enums.ExerciseDifficulty;
+                    suitableGoals: string[];
+                    contraindicationNotes: string | null;
+                    instructions: string[];
+                };
+            } & {
+                id: string;
+                workoutPlanDayId: string;
+                exerciseOrder: number;
+                sets: number;
+                reps: string;
+                restSeconds: number;
+                exerciseId: string;
+            })[];
+        } & {
+            id: string;
+            weekday: string;
+            dayOrder: number;
+            title: string;
+            targetMuscleGroups: string[];
+            estimatedMinutes: number;
+            workoutPlanId: string;
+        }) | null;
     } & {
         id: string;
-        userId: string;
         createdAt: Date;
         updatedAt: Date;
+        userId: string;
         date: Date;
         sourceFingerprint: string;
         isTrainingDay: boolean;
@@ -108,13 +108,13 @@ export declare class ScheduleController {
         };
     } & {
         id: string;
-        recipeId: string;
-        dailyScheduleId: string;
         slot: string;
         scheduledMinutes: number;
         targetCalories: number;
         alternativeRecipeIds: string[];
         eatenAt: Date | null;
+        recipeId: string;
+        dailyScheduleId: string;
     }>;
     markEaten(userId: string, scheduleId: string, slot: string): Promise<{
         recipe: {
@@ -141,12 +141,12 @@ export declare class ScheduleController {
         };
     } & {
         id: string;
-        recipeId: string;
-        dailyScheduleId: string;
         slot: string;
         scheduledMinutes: number;
         targetCalories: number;
         alternativeRecipeIds: string[];
         eatenAt: Date | null;
+        recipeId: string;
+        dailyScheduleId: string;
     }>;
 }

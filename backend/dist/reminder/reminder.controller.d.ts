@@ -5,9 +5,9 @@ export declare class ReminderController {
     constructor(reminders: ReminderService);
     settings(userId: string): Promise<{
         id: string;
-        userId: string;
         createdAt: Date;
         updatedAt: Date;
+        userId: string;
         timezone: string;
         workoutEnabled: boolean;
         mealEnabled: boolean;
@@ -20,9 +20,9 @@ export declare class ReminderController {
     }>;
     update(userId: string, payload: UpdateReminderSettingsDto): Promise<{
         id: string;
-        userId: string;
         createdAt: Date;
         updatedAt: Date;
+        userId: string;
         timezone: string;
         workoutEnabled: boolean;
         mealEnabled: boolean;
@@ -36,9 +36,9 @@ export declare class ReminderController {
     today(userId: string): Promise<{
         settings: {
             id: string;
-            userId: string;
             createdAt: Date;
             updatedAt: Date;
+            userId: string;
             timezone: string;
             workoutEnabled: boolean;
             mealEnabled: boolean;
@@ -51,10 +51,10 @@ export declare class ReminderController {
         };
         occurrences: {
             id: string;
-            userId: string;
             createdAt: Date;
-            scheduledMinutes: number;
+            userId: string;
             timezone: string;
+            scheduledMinutes: number;
             kind: string;
             sourceKey: string;
             scheduledLocalDate: string;

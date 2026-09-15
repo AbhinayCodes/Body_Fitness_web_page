@@ -16,13 +16,13 @@ export declare class TodayController {
         date: Date;
         profile: {
             id: string;
-            userId: string;
             createdAt: Date;
             updatedAt: Date;
             name: string;
             goal: string;
             days: string;
             diet: string;
+            userId: string;
         } | null;
         nutrition: import("../nutrition/nutrition-calculation.types").CalculationResult;
         schedule: {
@@ -58,13 +58,13 @@ export declare class TodayController {
                     nutritionBasis: string;
                 };
                 id: string;
-                recipeId: string;
-                dailyScheduleId: string;
                 slot: string;
                 scheduledMinutes: number;
                 targetCalories: number;
                 alternativeRecipeIds: string[];
                 eatenAt: Date | null;
+                recipeId: string;
+                dailyScheduleId: string;
             }[];
             workout: {
                 completedSets: number;
@@ -81,6 +81,7 @@ export declare class TodayController {
                         updatedAt: Date;
                         name: string;
                         equipment: string[];
+                        estimatedMinutes: number;
                         slug: string;
                         muscleGroups: string[];
                         movementPattern: string;
@@ -89,24 +90,23 @@ export declare class TodayController {
                         suitableGoals: string[];
                         contraindicationNotes: string | null;
                         instructions: string[];
-                        estimatedMinutes: number;
                     };
                 } & {
                     id: string;
                     workoutPlanDayId: string;
-                    exerciseId: string;
+                    exerciseOrder: number;
                     sets: number;
                     reps: string;
-                    exerciseOrder: number;
                     restSeconds: number;
+                    exerciseId: string;
                 })[];
                 id: string;
-                estimatedMinutes: number;
-                workoutPlanId: string;
                 weekday: string;
                 dayOrder: number;
                 title: string;
                 targetMuscleGroups: string[];
+                estimatedMinutes: number;
+                workoutPlanId: string;
             } | null;
         };
         adherence: {
@@ -117,19 +117,19 @@ export declare class TodayController {
             consistencyPercent: number;
         };
         activity: {
+            id: string;
+            createdAt: Date;
+            updatedAt: Date;
+            userId: string;
+            workoutDurationMinutes: number | null;
             source: string;
             recordedAt: Date;
             steps: number | null;
             distanceMeters: number | null;
             activeCalories: number | null;
-            workoutDurationMinutes: number | null;
             heartRateBpm: number | null;
             sleepMinutes: number | null;
             recoveryScore: number | null;
-            id: string;
-            userId: string;
-            createdAt: Date;
-            updatedAt: Date;
         } | null;
         message?: undefined;
     }>;

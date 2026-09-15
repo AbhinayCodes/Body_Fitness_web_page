@@ -15,6 +15,7 @@ export declare class WorkoutController {
                     updatedAt: Date;
                     name: string;
                     equipment: string[];
+                    estimatedMinutes: number;
                     slug: string;
                     muscleGroups: string[];
                     movementPattern: string;
@@ -23,37 +24,36 @@ export declare class WorkoutController {
                     suitableGoals: string[];
                     contraindicationNotes: string | null;
                     instructions: string[];
-                    estimatedMinutes: number;
                 };
             } & {
                 id: string;
                 workoutPlanDayId: string;
-                exerciseId: string;
+                exerciseOrder: number;
                 sets: number;
                 reps: string;
-                exerciseOrder: number;
                 restSeconds: number;
+                exerciseId: string;
             })[];
         } & {
             id: string;
-            estimatedMinutes: number;
-            workoutPlanId: string;
             weekday: string;
             dayOrder: number;
             title: string;
             targetMuscleGroups: string[];
+            estimatedMinutes: number;
+            workoutPlanId: string;
         })[];
     } & {
         id: string;
-        userId: string;
         createdAt: Date;
         updatedAt: Date;
         goal: string;
+        userId: string;
         trainingDays: string[];
         trainingLocation: string;
         sourceFingerprint: string;
-        durationMinutes: number;
         experience: string;
+        durationMinutes: number;
     }>;
     updateTodayProgress(userId: string, payload: UpdateWorkoutProgressDto): Promise<{
         exercises: {
@@ -65,9 +65,9 @@ export declare class WorkoutController {
         }[];
     } & {
         id: string;
-        userId: string;
         createdAt: Date;
         updatedAt: Date;
+        userId: string;
         date: Date;
         workoutPlanDayId: string | null;
         durationMinutes: number;

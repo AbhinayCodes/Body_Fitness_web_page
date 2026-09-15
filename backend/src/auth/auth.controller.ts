@@ -13,6 +13,9 @@ export class AuthController {
   @HttpCode(HttpStatus.NO_CONTENT)
   async sendOtp(@Body() payload: SendOtpDto): Promise<void> { await this.authService.sendOtp(payload.phoneNumber); }
 
+  @Post('phone-login')
+  loginWithPhone(@Body() payload: SendOtpDto) { return this.authService.loginWithPhone(payload.phoneNumber); }
+
   @Post('verify-otp')
   verifyOtp(@Body() payload: VerifyOtpDto) { return this.authService.verifyOtp(payload.phoneNumber, payload.code); }
 
