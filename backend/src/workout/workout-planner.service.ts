@@ -32,9 +32,9 @@ export class WorkoutPlannerService {
     const difficulties = input.trainingExperience === 'BEGINNER' ? ['BEGINNER'] : input.trainingExperience === 'INTERMEDIATE' ? ['BEGINNER', 'INTERMEDIATE'] : ['BEGINNER', 'INTERMEDIATE', 'ADVANCED'];
     return difficulties.includes(exercise.difficulty) && exercise.locations.includes(input.trainingLocation) && exercise.equipment.every((item) => input.equipment.includes(item)) && exercise.suitableGoals.includes(input.primaryGoal);
   }
-  private validate(input: WorkoutPlanningInput): void { if (input.trainingDays.length < 3 || input.trainingDays.length > 7) throw new WorkoutPlanningError('Choose between 3 and 7 training days.'); if (![30, 45, 60, 90].includes(input.workoutDurationMinutes)) throw new WorkoutPlanningError('Workout duration must be 30, 45, 60, or 90 minutes.'); }
+  private validate(input: WorkoutPlanningInput): void { if (input.trainingDays.length < 1 || input.trainingDays.length > 7) throw new WorkoutPlanningError('Choose between 1 and 7 training days.'); if (![30, 45, 60, 90].includes(input.workoutDurationMinutes)) throw new WorkoutPlanningError('Workout duration must be 30, 45, 60, or 90 minutes.'); }
 }
 
 export class WorkoutPlanningError extends Error {}
 
-function splitForFrequency(frequency: number): string[] { if (frequency === 3) return ['Full']; if (frequency === 4) return ['Upper', 'Lower']; if (frequency === 5) return ['Push', 'Pull', 'Legs', 'Upper', 'Lower']; if (frequency === 6) return ['Push', 'Pull', 'Legs']; return ['Full', 'Upper', 'Lower']; }
+function splitForFrequency(frequency: number): string[] { if (frequency <= 3) return ['Full']; if (frequency === 4) return ['Upper', 'Lower']; if (frequency === 5) return ['Push', 'Pull', 'Legs', 'Upper', 'Lower']; if (frequency === 6) return ['Push', 'Pull', 'Legs']; return ['Full', 'Upper', 'Lower']; }

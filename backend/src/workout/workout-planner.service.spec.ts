@@ -12,7 +12,7 @@ const catalog: CatalogExercise[] = patterns.flatMap((movementPattern, index) => 
 const base: WorkoutPlanningInput = { primaryGoal: 'Build muscle', trainingExperience: 'BEGINNER', trainingDays: ['Monday', 'Wednesday', 'Friday'], workoutDurationMinutes: 45, trainingLocation: 'HOME', equipment: [] };
 
 describe('WorkoutPlannerService', () => {
-  it.each([3, 4, 5, 6, 7])('generates deterministic plans for %i selected days', (count) => {
+  it.each([1, 2, 3, 4, 5, 6, 7])('generates deterministic plans for %i selected days', (count) => {
     const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].slice(0, count);
     const first = planner.generate({ ...base, trainingDays: days }, catalog);
     const second = planner.generate({ ...base, trainingDays: days }, catalog);
@@ -49,7 +49,7 @@ describe('WorkoutPlannerService', () => {
   });
 
   it('rejects invalid frequency, duration, and incompatible catalog combinations', () => {
-    expect(() => planner.generate({ ...base, trainingDays: ['Monday', 'Tuesday'] }, catalog)).toThrow(WorkoutPlanningError);
+    expect(() => planner.generate({ ...base, trainingDays: [] }, catalog)).toThrow(WorkoutPlanningError);
     expect(() => planner.generate({ ...base, workoutDurationMinutes: 40 as 45 }, catalog)).toThrow('Workout duration must be 30, 45, 60, or 90 minutes.');
     expect(() => planner.generate({ ...base, trainingLocation: 'OUTDOOR', equipment: ['Barbell'] }, catalog.filter((exercise) => exercise.equipment.includes('Barbell')))).toThrow('No catalog exercises match');
   });

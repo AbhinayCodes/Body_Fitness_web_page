@@ -1,4 +1,4 @@
-import { ArrayMinSize, IsArray, IsBoolean, IsIn, IsInt, IsOptional, IsString, Matches, Max, Min, ValidateIf } from 'class-validator';
+import { IsArray, IsBoolean, IsIn, IsInt, IsOptional, IsString, Matches, Max, Min, ValidateBy, ValidateIf } from 'class-validator';
 
 const timePattern = /^([01]\d|2[0-3]):[0-5]\d$/;
 
@@ -11,7 +11,17 @@ export class SaveOnboardingDto {
   @IsOptional() @IsString() secondaryGoal?: string;
   @IsOptional() @IsArray() @IsIn(['Improve strength', 'Improve endurance', 'Improve mobility', 'Build consistency'], { each: true }) secondaryGoals?: string[];
   @ValidateIf((value) => value.completed || value.trainingExperience !== undefined) @IsIn(['BEGINNER', 'INTERMEDIATE', 'ADVANCED']) trainingExperience?: string;
-  @ValidateIf((value) => value.completed || value.trainingDays !== undefined) @IsArray() @ArrayMinSize(1) @IsIn(['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'], { each: true }) trainingDays?: string[];
+  @ValidateIf((value) => value.completed || value.trainingDays !== undefined)
+  @IsArray()
+  @ValidateBy({
+    name: 'trainingDaysRequiredWhenCompleted',
+    validator: {
+      validate: (days: unknown, args) => !(args?.object as SaveOnboardingDto).completed || (Array.isArray(days) && days.length > 0),
+      defaultMessage: () => 'Choose at least one training day before completing your setup.',
+    },
+  })
+  @IsIn(['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'], { each: true })
+  trainingDays?: string[];
   @ValidateIf((value) => value.completed || value.workoutDurationMinutes !== undefined) @IsIn([30, 45, 60, 90]) workoutDurationMinutes?: number;
   @ValidateIf((value) => value.completed || value.trainingLocation !== undefined) @IsIn(['HOME', 'GYM', 'OUTDOOR', 'MIXED']) trainingLocation?: string;
   @IsOptional() @IsArray() @IsString({ each: true }) equipment?: string[];
