@@ -8,7 +8,7 @@ import { Nav } from '@/components/Nav';
 import { OnboardingModal } from '@/components/OnboardingModal';
 import { CalendarPage, DietPage, ProfilePage, ProgressPage, WorkoutPage } from '@/components/PlanPages';
 import { useFitnessState } from '@/hooks/useFitnessState';
-import { clearAccessToken, clearDemoLogin, clearDemoOnboarding, fitnessApi, isDemoLogin } from '@/lib/api';
+import { clearAccessToken, clearDemoLogin, clearDemoOnboarding, fitnessApi } from '@/lib/api';
 import type { Profile, View } from '@/types/fitness';
 
 const titles: Record<Exclude<View, 'dashboard'>, string> = { workout: 'Workout plan', diet: 'Nutrition plan', calendar: 'Your calendar', progress: 'Progress overview', profile: 'Your profile' };
@@ -17,7 +17,6 @@ export default function FitnessApp() {
   const [authenticated, setAuthenticated] = useState<boolean | null>(null);
   const [startOnboarding, setStartOnboarding] = useState(false);
   useEffect(() => {
-    if (isDemoLogin()) { setAuthenticated(true); return; }
     fitnessApi.getCurrentUser().then(() => setAuthenticated(true)).catch(() => { clearAccessToken(); setAuthenticated(false); });
   }, []);
   if (authenticated === null) return <main className="auth-shell"><div className="auth-panel">Loading your session...</div></main>;
@@ -28,6 +27,7 @@ export default function FitnessApp() {
 function AuthenticatedFitnessApp({ startOnboarding, onLogout }: { startOnboarding: boolean; onLogout: () => void }) {
   const { state, update, updateProfile, isLoading, error, clearError, logMeal, logWorkout, saveProfile } = useFitnessState();
   const [saving, setSaving] = useState(false);
+  const [planVersion, setPlanVersion] = useState(0);
 
   const toggleExercise = (index: number) => update({ exerciseDone: state.exerciseDone.includes(index) ? state.exerciseDone.filter((item) => item !== index) : [...state.exerciseDone, index] });
   const completeWorkout = () => void logWorkout(state.exerciseDone);
@@ -52,10 +52,10 @@ function AuthenticatedFitnessApp({ startOnboarding, onLogout }: { startOnboardin
         <div className="nav-label" style={{ marginTop: 34 }}>Account</div><nav className="nav"><button onClick={() => update({ view: 'profile' })}><span className="nav-icon">○</span>Profile</button><button onClick={onLogout}><span className="nav-icon">↗</span>Log out</button></nav>
         <div className="sidebar-bottom"><div className="avatar">{state.profile.name.slice(0, 2).toUpperCase()}</div><div><span className="user-name">{state.profile.name}</span><span className="user-meta">{state.profile.goal} · {state.profile.days}</span></div></div>
       </aside>
-      <main className="main">{(isLoading || error || saving) && <div className={`api-status ${error ? 'error' : ''}`} role={error ? 'alert' : 'status'}>{error ?? (saving ? 'Saving your plan...' : 'Loading your plan...')}{error && <button aria-label="Dismiss message" onClick={clearError}>×</button>}</div>}{state.view === 'dashboard' ? <Dashboard profile={state.profile} onWorkout={() => update({ view: 'workout' })} onEdit={openOnboarding} /> : <PageView view={state.view} title={pageTitle} profile={state.profile} mealDone={state.mealDone} exerciseDone={state.exerciseDone} onEdit={openOnboarding} onMeal={() => void logMeal()} onToggle={toggleExercise} onComplete={completeWorkout} onNavigate={(view) => update({ view })} />}</main>
+      <main className="main">{(isLoading || error || saving) && <div className={`api-status ${error ? 'error' : ''}`} role={error ? 'alert' : 'status'}>{error ?? (saving ? 'Saving your plan...' : 'Loading your plan...')}{error && <button aria-label="Dismiss message" onClick={clearError}>×</button>}</div>}{state.view === 'dashboard' ? <Dashboard key={planVersion} profile={state.profile} onWorkout={() => update({ view: 'workout' })} onEdit={openOnboarding} /> : <PageView key={planVersion} view={state.view} title={pageTitle} profile={state.profile} mealDone={state.mealDone} exerciseDone={state.exerciseDone} onEdit={openOnboarding} onMeal={() => void logMeal()} onToggle={toggleExercise} onComplete={completeWorkout} onNavigate={(view) => update({ view })} />}</main>
       <Nav active={state.view} onNavigate={(view) => update({ view })} mobile />
     </div>
-    {state.modal === 'onboarding' ? <OnboardingModal required={startOnboarding} onCompleted={(onboarding) => update({ profile: { ...state.profile, goal: onboarding.primaryGoal ?? state.profile.goal, days: `${onboarding.trainingDays?.length ?? 0} days / week`, diet: onboarding.dietType ?? state.profile.diet } })} onClose={() => update({ modal: null })} /> : <Modal type={state.modal} profile={state.profile} step={state.step} done={state.exerciseDone} mealDone={state.mealDone} onClose={() => update({ modal: null })} onToggle={toggleExercise} onComplete={completeWorkout} onMeal={() => void logMeal()} onNext={nextOnboardingStep} onProfile={updateProfile} />}
+    {state.modal === 'onboarding' ? <OnboardingModal required={startOnboarding && planVersion === 0} onCompleted={(onboarding) => { update({ profile: { ...state.profile, goal: onboarding.primaryGoal ?? state.profile.goal, days: `${onboarding.trainingDays?.length ?? 0} days / week`, diet: onboarding.dietType ?? state.profile.diet } }); setPlanVersion((current) => current + 1); }} onClose={() => update({ modal: null })} /> : <Modal type={state.modal} profile={state.profile} step={state.step} done={state.exerciseDone} mealDone={state.mealDone} onClose={() => update({ modal: null })} onToggle={toggleExercise} onComplete={completeWorkout} onMeal={() => void logMeal()} onNext={nextOnboardingStep} onProfile={updateProfile} />}
   </>;
 }
 

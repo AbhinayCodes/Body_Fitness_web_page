@@ -1,7 +1,6 @@
 import type { ActivityToday, DailySchedule, FitnessState, GeneratedWorkoutPlan, OnboardingData, Profile, ProgressSummary, ReminderSettings, TodayExperience } from '@/types/fitness';
 
-const BACKEND_API_URL = process.env.BACKEND_API_URL?.replace(/\/$/, '');
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? (BACKEND_API_URL ? `${BACKEND_API_URL}/api/v1` : '/api/v1');
+const API_URL = process.env.NEXT_PUBLIC_API_URL?.trim().replace(/\/+$/, '') || '/api/v1';
 const ACCESS_TOKEN_KEY = 'formwell.accessToken';
 const DEMO_PHONE_KEY = 'formwell.demoPhone';
 const DEMO_ONBOARDING_KEY = 'formwell.demoOnboarding';
@@ -40,11 +39,12 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   if (!response.ok) {
     const payload = await response.json().catch(() => null) as { message?: string | string[] } | null;
     const message = Array.isArray(payload?.message) ? payload.message.join(', ') : payload?.message;
-    if (response.status === 404 && API_URL === '/api/v1') {
-      throw new ApiError(response.status, 'API endpoint not found. Start the backend server and set NEXT_PUBLIC_API_URL=http://127.0.0.1:8000/api/v1 or BACKEND_API_URL=http://127.0.0.1:8000.');
+    if (response.status === 404 && !message) {
+      throw new ApiError(response.status, 'The Formwell API is unavailable at its configured address. Please contact the site administrator.');
     }
     throw new ApiError(response.status, message ?? `Request failed with status ${response.status}.`);
   }
+  if (response.status === 204) return undefined as T;
   return response.json() as Promise<T>;
 }
 

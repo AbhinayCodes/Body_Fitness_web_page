@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: formwell-api
+    runtime: node
+    plan: free
+    buildCommand: npm --prefix backend ci --include=dev && npm --prefix backend run db:generate && npm --prefix backend run build
+    startCommand: npm --prefix backend run db:migrate && npm --prefix backend run db:seed && npm --prefix backend start
+    envVars:
+      - key: NODE_VERSION
+        value: 22.22.3
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: formwell-db
+          property: connectionString
+
+databases:
+  - name: formwell-db
+    plan: free
+    databaseName: formwell
+    ipAllowList: []

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { fitnessApi, getDemoOnboarding, isDemoLogin, saveDemoOnboarding } from '@/lib/api';
+import { ApiError, clearDemoOnboarding, fitnessApi, getDemoOnboarding } from '@/lib/api';
 import type { OnboardingData } from '@/types/fitness';
 
 const steps = ['Body', 'Goals', 'Training', 'Food', 'Routine', 'Review'];
@@ -18,18 +18,11 @@ export function OnboardingModal({ onClose, onCompleted, required = false }: { on
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (isDemoLogin()) {
-      const saved = getDemoOnboarding<OnboardingData>();
-      if (saved) {
-        setData({ ...defaults, ...saved });
-        setStep(saved.completed ? 1 : saved.currentStep ?? 1);
-      }
-      setLoading(false);
-      return;
-    }
     fitnessApi.getOnboarding().then((saved) => {
-      setData({ ...defaults, ...saved });
-      setStep(saved.completed ? 1 : saved.currentStep ?? 1);
+      const draft = !saved.age ? getDemoOnboarding<OnboardingData>() : null;
+      const restored = draft ?? saved;
+      setData({ ...defaults, ...restored });
+      setStep(restored.completed ? 1 : restored.currentStep ?? 1);
     }).catch(() => setError('Unable to load your saved setup.')).finally(() => setLoading(false));
   }, []);
 
@@ -50,12 +43,12 @@ export function OnboardingModal({ onClose, onCompleted, required = false }: { on
     setError(null);
     try {
       const onboarding = { ...data, currentStep: nextStep, completed };
-      if (isDemoLogin()) saveDemoOnboarding(onboarding);
-      else await fitnessApi.saveOnboarding(onboarding);
+      await fitnessApi.saveOnboarding(onboarding);
+      clearDemoOnboarding();
       setStep(nextStep);
       return true;
-    } catch {
-      setError('Unable to save your setup. Please try again.');
+    } catch (reason) {
+      setError(reason instanceof ApiError ? reason.message : 'Unable to save your setup. Please try again.');
       return false;
     } finally {
       setSaving(false);
