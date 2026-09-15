@@ -15,6 +15,6 @@ let DataAccessModule = class DataAccessModule {
 exports.DataAccessModule = DataAccessModule;
 exports.DataAccessModule = DataAccessModule = __decorate([
     (0, common_1.Global)(),
-    (0, common_1.Module)({ providers: [prisma_service_1.PrismaService, fitness_repository_1.FitnessRepository], exports: [fitness_repository_1.FitnessRepository] })
+    (0, common_1.Module)({ providers: [prisma_service_1.PrismaService, fitness_repository_1.FitnessRepository], exports: [prisma_service_1.PrismaService, fitness_repository_1.FitnessRepository] })
 ], DataAccessModule);
 //# sourceMappingURL=data-access.module.js.map

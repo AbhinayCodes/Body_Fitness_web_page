@@ -3,5 +3,5 @@ import { FitnessRepository } from './fitness.repository';
 import { PrismaService } from './prisma.service';
 
 @Global()
-@Module({ providers: [PrismaService, FitnessRepository], exports: [FitnessRepository] })
+@Module({ providers: [PrismaService, FitnessRepository], exports: [PrismaService, FitnessRepository] })
 export class DataAccessModule {}
