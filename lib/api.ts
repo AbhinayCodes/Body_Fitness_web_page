@@ -1,6 +1,6 @@
 import type { ActivityToday, DailySchedule, FitnessState, GeneratedWorkoutPlan, OnboardingData, Profile, ProgressSummary, ReminderSettings, TodayExperience } from '@/types/fitness';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://127.0.0.1:8000/api/v1';
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? '/api/v1';
 const ACCESS_TOKEN_KEY = 'formwell.accessToken';
 
 export function setAccessToken(token: string) { sessionStorage.setItem(ACCESS_TOKEN_KEY, token); }
