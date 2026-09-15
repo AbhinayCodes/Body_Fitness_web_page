@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { ApiError, fitnessApi } from '@/lib/api';
+import { ApiError, fitnessApi, isDemoLogin } from '@/lib/api';
 import type { AppState, Profile } from '@/types/fitness';
 
 const defaultProfile: Profile = { name: 'Member', goal: 'Set up your plan', days: 'Your schedule', diet: 'Your food preferences' };
@@ -14,6 +14,7 @@ export function useFitnessState() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (isDemoLogin()) { setIsLoading(false); return; }
     fitnessApi.getState()
       .then((saved) => setState((current) => ({ ...current, profile: saved.profile || current.profile, mealDone: Boolean(saved.mealDone) })))
       .catch((requestError) => setError(toMessage(requestError)))
