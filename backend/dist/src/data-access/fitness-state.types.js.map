@@ -1,0 +1,1 @@
+{"version":3,"file":"fitness-state.types.js","sourceRoot":"","sources":["../../../src/data-access/fitness-state.types.ts"],"names":[],"mappings":";;;AAyBa,QAAA,aAAa,GAAiB;IACzC,OAAO,EAAE,EAAE,IAAI,EAAE,OAAO,EAAE,IAAI,EAAE,cAAc,EAAE,IAAI,EAAE,eAAe,EAAE,IAAI,EAAE,YAAY,EAAE;IAC3F,QAAQ,EAAE,KAAK;IACf,cAAc,EAAE,EAAE;IAClB,WAAW,EAAE,EAAE;CAChB,CAAC"}

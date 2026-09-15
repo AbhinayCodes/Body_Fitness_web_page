@@ -1,0 +1,117 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               String           @id @default(uuid()) @db.Uuid
+  key              String           @unique
+  passwordHash     String?
+  mealDone         Boolean          @default(false)
+  profile          Profile?
+  onboarding       Onboarding?
+  workoutSessions  WorkoutSession[]
+  mealLogs         MealLog[]
+  activitySummaries ActivitySummary[]
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+}
+
+model Profile {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @unique @db.Uuid
+  name      String
+  goal      String
+  days      String
+  diet      String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model WorkoutSession {
+  id              String               @id @default(uuid()) @db.Uuid
+  userId          String               @db.Uuid
+  date            DateTime             @db.Date
+  durationMinutes Int
+  user            User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  exercises       ExerciseCompletion[]
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+
+  @@index([userId, date])
+}
+
+model ExerciseCompletion {
+  id                String         @id @default(uuid()) @db.Uuid
+  workoutSessionId  String         @db.Uuid
+  exerciseIndex     Int
+  workoutSession    WorkoutSession @relation(fields: [workoutSessionId], references: [id], onDelete: Cascade)
+  createdAt         DateTime       @default(now())
+
+  @@unique([workoutSessionId, exerciseIndex])
+}
+
+model MealLog {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  date      DateTime @db.Date
+  meal      String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, date])
+}
+
+model Onboarding {
+  id                     String   @id @default(uuid()) @db.Uuid
+  userId                 String   @unique @db.Uuid
+  age                    Int?
+  sex                    String?
+  heightCm               Int?
+  weightKg               Int?
+  primaryGoal            String?
+  secondaryGoal          String?
+  trainingExperience     String?
+  trainingDays           String[]
+  workoutDurationMinutes Int?
+  trainingLocation       String?
+  equipment              String[]
+  dietType               String?
+  foodPreferences        String[]
+  foodRestrictions       String[]
+  wakeTime               String?
+  workSchedule           String?
+  preferredGymTime       String?
+  sleepTime              String?
+  currentStep            Int      @default(1)
+  completed              Boolean  @default(false)
+  user                   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+}
+
+model ActivitySummary {
+  id                     String   @id @default(uuid()) @db.Uuid
+  userId                 String   @db.Uuid
+  source                 String
+  recordedAt             DateTime
+  steps                  Int?
+  distanceMeters         Int?
+  activeCalories         Int?
+  workoutDurationMinutes Int?
+  heartRateBpm           Int?
+  sleepMinutes           Int?
+  recoveryScore          Int?
+  user                   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  @@index([userId, recordedAt])
+  @@index([userId, source, recordedAt])
+}

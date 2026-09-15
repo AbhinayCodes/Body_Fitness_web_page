@@ -1,0 +1,22 @@
+{
+  "profile": {
+    "name": "Rahul",
+    "goal": "Build muscle",
+    "days": "4 days / week",
+    "diet": "Vegetarian"
+  },
+  "mealDone": true,
+  "workoutHistory": [
+    {
+      "date": "2026-09-10",
+      "exercises": [0, 1, 2, 3, 4],
+      "durationMinutes": 52
+    }
+  ],
+  "mealHistory": [
+    {
+      "date": "2026-09-10",
+      "meal": "Paneer rice bowl"
+    }
+  ]
+}

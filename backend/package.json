@@ -1,0 +1,44 @@
+{
+  "name": "formwell-api",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "nest build",
+    "start": "node dist/main",
+    "start:dev": "nest start --watch",
+    "test": "jest",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate deploy",
+    "db:seed": "prisma db seed"
+  },
+  "dependencies": {
+    "@prisma/client": "6.19.2",
+    "@nestjs/config": "latest",
+    "@nestjs/common": "latest",
+    "@nestjs/core": "latest",
+    "@nestjs/jwt": "latest",
+    "@nestjs/platform-express": "latest",
+    "bcrypt": "latest",
+    "class-transformer": "latest",
+    "class-validator": "latest",
+    "joi": "latest",
+    "reflect-metadata": "latest",
+    "rxjs": "latest"
+  },
+  "devDependencies": {
+    "@nestjs/cli": "latest",
+    "@nestjs/schematics": "latest",
+    "@nestjs/testing": "latest",
+    "@types/bcrypt": "latest",
+    "@types/node": "latest",
+    "jest": "latest",
+    "ts-jest": "latest",
+    "ts-node": "latest",
+    "tsx": "latest",
+    "typescript": "latest",
+    "prisma": "6.19.2"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  }
+}
