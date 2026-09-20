@@ -1,6 +1,8 @@
 'use client';
 
 import { FormEvent, useState } from 'react';
+import { ArrowRight } from 'lucide-react';
+import { Brand } from '@/components/Brand';
 import { ApiError, clearDemoLogin, fitnessApi, setAccessToken } from '@/lib/api';
 
 const phonePattern = /^(?:\+91|91)?[6-9]\d{9}$/;
@@ -25,5 +27,5 @@ export function AuthScreen({ onAuthenticated }: { onAuthenticated: (isNewUser: b
       setLoading(false);
     }
   };
-  return <main className="auth-shell"><section className="auth-panel"><a className="brand" href="#"><span className="brand-mark" />formwell</a><span className="eyebrow">Your fitness, built around real life</span><h1>Let's get moving.</h1><p>Sign in or create your account with your Indian mobile number.</p><form onSubmit={login}><div className="field"><label>Mobile number</label><input autoComplete="tel" inputMode="tel" placeholder="+91 98765 43210" value={phoneNumber} onChange={(event) => setPhoneNumber(event.target.value)} /></div>{error && <div className="api-status error" role="alert">{error}</div>}<button className="primary dark-button" disabled={loading}>{loading ? 'Please wait...' : 'Login'}</button></form></section><aside className="auth-aside"><span className="eyebrow">Formwell</span><strong>Strong habits,<br />made personal.</strong></aside></main>;
+  return <main className="auth-shell"><section className="auth-panel"><Brand /><div className="eyebrow">Your next chapter starts here</div><h1>A little stronger.<br />Every day.</h1><p>Your training, meals, and progress. All in one place.</p><form onSubmit={login}><div className="field"><label htmlFor="phone-number">Mobile number</label><input id="phone-number" type="tel" autoComplete="tel" inputMode="tel" placeholder="+91 98765 43210" value={phoneNumber} onChange={(event) => setPhoneNumber(event.target.value)} aria-describedby={error ? 'login-error' : undefined} /></div>{error && <div id="login-error" className="api-status error" role="alert">{error}</div>}<button className="primary dark-button" disabled={loading}>{loading ? 'Signing in...' : 'Continue'}<ArrowRight size={17} aria-hidden="true" /></button></form></section></main>;
 }

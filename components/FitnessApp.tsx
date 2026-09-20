@@ -1,7 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { LogOut, Settings2, UserRound, X } from 'lucide-react';
 import { AuthScreen } from '@/components/AuthScreen';
+import { Brand } from '@/components/Brand';
 import { Dashboard } from '@/components/Dashboard';
 import { Modal } from '@/components/Modal';
 import { Nav } from '@/components/Nav';
@@ -65,19 +67,20 @@ function ReadyFitnessApp({ onLogout }: { onLogout: () => void }) {
   return <>
     <div className="app-shell">
       <aside className="sidebar">
-        <a className="brand" href="#"><span className="brand-mark" />formwell</a>
+        <Brand />
         <div className="nav-label">Your space</div>
         <Nav active={state.view} onNavigate={(view) => update({ view })} />
-        <div className="nav-label" style={{ marginTop: 34 }}>Account</div><nav className="nav"><button onClick={() => update({ view: 'profile' })}><span className="nav-icon">○</span>Profile</button><button onClick={onLogout}><span className="nav-icon">↗</span>Log out</button></nav>
+        <div className="nav-label" style={{ marginTop: 34 }}>Account</div><nav className="nav" aria-label="Account"><button className={state.view === 'profile' ? 'active' : ''} aria-current={state.view === 'profile' ? 'page' : undefined} onClick={() => update({ view: 'profile' })}><UserRound size={19} aria-hidden="true" />Profile</button><button onClick={onLogout}><LogOut size={19} aria-hidden="true" />Log out</button></nav>
         <div className="sidebar-bottom"><div className="avatar">{state.profile.name.slice(0, 2).toUpperCase()}</div><div><span className="user-name">{state.profile.name}</span><span className="user-meta">{state.profile.goal} · {state.profile.days}</span></div></div>
       </aside>
-      <main className="main">{(isLoading || error || saving) && <div className={`api-status ${error ? 'error' : ''}`} role={error ? 'alert' : 'status'}>{error ?? (saving ? 'Saving your plan...' : 'Loading your plan...')}{error && <button aria-label="Dismiss message" onClick={clearError}>×</button>}</div>}{state.view === 'dashboard' ? <Dashboard key={planVersion} profile={state.profile} onWorkout={() => update({ view: 'workout' })} onEdit={openOnboarding} /> : <PageView key={planVersion} view={state.view} title={pageTitle} profile={state.profile} mealDone={state.mealDone} exerciseDone={state.exerciseDone} onEdit={openOnboarding} onMeal={() => void logMeal()} onToggle={toggleExercise} onComplete={completeWorkout} onNavigate={(view) => update({ view })} />}</main>
+      <header className="app-mobile-header"><Brand /><button className="icon-button" title="Log out" aria-label="Log out" onClick={onLogout}><LogOut size={18} /></button></header>
+      <main className="main">{(isLoading || error || saving) && <div className={`api-status ${error ? 'error' : ''}`} role={error ? 'alert' : 'status'}>{error ?? (saving ? 'Saving your plan...' : 'Loading your plan...')}{error && <button aria-label="Dismiss message" onClick={clearError}><X size={16} /></button>}</div>}{state.view === 'dashboard' ? <Dashboard key={planVersion} profile={state.profile} onWorkout={() => update({ view: 'workout' })} onEdit={openOnboarding} /> : <PageView key={planVersion} view={state.view} title={pageTitle} profile={state.profile} onEdit={openOnboarding} />}</main>
       <Nav active={state.view} onNavigate={(view) => update({ view })} mobile />
     </div>
     {state.modal === 'onboarding' ? <OnboardingModal onCompleted={(onboarding) => { update({ profile: { ...state.profile, goal: onboarding.primaryGoal ?? state.profile.goal, days: `${onboarding.trainingDays?.length ?? 0} days / week`, diet: onboarding.dietType ?? state.profile.diet } }); setPlanVersion((current) => current + 1); }} onClose={() => update({ modal: null })} /> : <Modal type={state.modal} profile={state.profile} step={state.step} done={state.exerciseDone} mealDone={state.mealDone} onClose={() => update({ modal: null })} onToggle={toggleExercise} onComplete={completeWorkout} onMeal={() => void logMeal()} onNext={nextOnboardingStep} onProfile={updateProfile} />}
   </>;
 }
 
-function PageView({ view, title, profile, mealDone, exerciseDone, onEdit, onMeal, onToggle, onComplete }: { view: Exclude<View, 'dashboard'>; title: string; profile: Profile; mealDone: boolean; exerciseDone: number[]; onEdit: () => void; onMeal: () => void; onToggle: (index: number) => void; onComplete: () => void; onNavigate: (view: View) => void }) {
-  return <><div className="topbar"><span className="eyebrow">Formwell / {title}</span><span className="date">{profile.name}</span></div><section className="greeting"><div><span className="eyebrow">Personalized for your life</span><h1>{title}<br /><em>kept simple.</em></h1></div><button className="primary dark-button" onClick={onEdit}>Edit my plan</button></section><div className="grid"><article className="card">{view === 'workout' ? <WorkoutPage /> : view === 'diet' ? <DietPage /> : view === 'progress' ? <ProgressPage /> : view === 'profile' ? <ProfilePage profile={profile} onEdit={onEdit} /> : <CalendarPage />}</article><article className="card nutrition"><div className="card-title"><h2>Your preferences</h2></div><div className="macro-row"><span>Goal</span><b>{profile.goal}</b></div><div className="macro-row"><span>Training</span><b>{profile.days}</b></div><div className="macro-row"><span>Food</span><b>{profile.diet}</b></div></article></div></>;
+function PageView({ view, title, profile, onEdit }: { view: Exclude<View, 'dashboard'>; title: string; profile: Profile; onEdit: () => void }) {
+  return <><div className="topbar"><span className="eyebrow">Formwell / {title}</span><span className="date">{profile.name}</span></div><section className="greeting"><div><span className="eyebrow">Your personal plan</span><h1>{title}</h1></div><button className="outline" onClick={onEdit}><Settings2 size={16} />Edit plan</button></section><div className="grid plan-layout"><article className="card">{view === 'workout' ? <WorkoutPage /> : view === 'diet' ? <DietPage /> : view === 'progress' ? <ProgressPage /> : view === 'profile' ? <ProfilePage profile={profile} onEdit={onEdit} /> : <CalendarPage />}</article><article className="card nutrition"><div className="card-title"><h2>Your preferences</h2></div><div className="macro-row"><span>Goal</span><b>{profile.goal}</b></div><div className="macro-row"><span>Training</span><b>{profile.days}</b></div><div className="macro-row"><span>Food</span><b>{profile.diet}</b></div></article></div></>;
 }
