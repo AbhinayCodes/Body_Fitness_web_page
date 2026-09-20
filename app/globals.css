@@ -176,6 +176,26 @@ small { display: block; }
 .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 .field { display: grid; gap: 8px; min-width: 0; }
 .field.full { grid-column: 1 / -1; }
+.routine-times { display: grid; }
+.routine-time { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 18px 0; border-bottom: 1px solid var(--line); }
+.routine-time:first-child { padding-top: 0; }
+.routine-time-label { display: flex; align-items: center; gap: 10px; min-width: 0; font-size: 12px; font-weight: 700; }
+.routine-time-icon { display: grid; place-items: center; width: 36px; height: 36px; flex: 0 0 36px; border-radius: 8px; background: #faf1db; color: #927020; }
+.routine-time:nth-child(2) .routine-time-icon { background: var(--blue); color: var(--teal); }
+.routine-time:nth-child(3) .routine-time-icon { background: #edf0fa; color: #53608e; }
+.time-controls { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+.time-digits { display: grid; grid-template-columns: 64px 8px 64px; align-items: center; text-align: center; gap: 3px; color: var(--muted); }
+.time-digits select { width: 64px; height: 46px; padding: 0 6px; border: 1px solid var(--line); border-radius: 6px; background: #fbfcfb; color: var(--ink); font-family: 'Space Grotesk Variable', sans-serif; font-size: 19px; font-variant-numeric: tabular-nums; cursor: pointer; }
+.time-period { display: grid; grid-template-columns: repeat(2, 42px); gap: 2px; padding: 3px; border-radius: 6px; background: #eaf0ed; }
+.time-period button { height: 38px; padding: 0; border-radius: 4px; background: transparent; color: var(--muted); font-size: 11px; font-weight: 700; }
+.time-period button[aria-pressed='true'] { background: var(--teal); color: white; }
+@media (max-width: 600px) {
+  .routine-time { align-items: start; flex-direction: column; gap: 12px; }
+  .time-controls { width: 100%; justify-content: space-between; gap: 8px; }
+  .time-digits { grid-template-columns: 55px 6px 55px; }
+  .time-digits select { width: 55px; font-size: 18px; }
+  .time-period { grid-template-columns: repeat(2, 36px); }
+}
 .field label { font-size: 11px; font-weight: 700; color: var(--muted); }
 .field input, .field select { min-width: 0; width: 100%; min-height: 44px; border: 1px solid var(--line); background: #fbfcfb; border-radius: 6px; color: var(--ink); padding: 11px 12px; }
 input[type='checkbox'] { accent-color: var(--teal); width: 18px; height: 18px; }
