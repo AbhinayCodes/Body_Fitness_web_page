@@ -18,6 +18,10 @@ export function getDemoOnboarding<T>(): T | null {
 export function saveDemoOnboarding<T>(onboarding: T) { sessionStorage.setItem(DEMO_ONBOARDING_KEY, JSON.stringify(onboarding)); }
 export function clearDemoOnboarding() { sessionStorage.removeItem(DEMO_ONBOARDING_KEY); }
 
+export function isOnboardingReady(onboarding: OnboardingData): boolean {
+  return Boolean(onboarding.completed && onboarding.wakeTime && onboarding.sleepTime && onboarding.dietType && onboarding.workoutDurationMinutes);
+}
+
 export class ApiError extends Error {
   constructor(public readonly status: number, message: string) {
     super(message);

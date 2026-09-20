@@ -18,6 +18,8 @@ export class WorkoutService {
     if (!planDay) throw new BadRequestException('Workout plan day not found.');
     const validIndexes = new Set(planDay.exercises.map((exercise) => exercise.exerciseOrder));
     if (payload.exercises.some((exercise) => !validIndexes.has(exercise.exerciseIndex))) throw new BadRequestException('Workout progress contains an invalid exercise.');
+    const targetSets = new Map(planDay.exercises.map((exercise) => [exercise.exerciseOrder, exercise.sets]));
+    if (payload.exercises.some((exercise) => exercise.setsCompleted > targetSets.get(exercise.exerciseIndex)!)) throw new BadRequestException('Completed sets cannot exceed the planned sets for an exercise.');
     const date = new Date();
     const existing = await this.prisma.workoutSession.findFirst({ where: { userId, workoutPlanDayId: planDay.id, date }, select: { id: true } });
     const session = existing
