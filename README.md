@@ -120,6 +120,55 @@ verifying phone ownership. It is not production-grade authentication. SMS delive
 is not implemented; `send-otp` intentionally returns `503` in production. A real
 SMS/OTP provider and verified login must be added before storing real users' data.
 
+## Diagnostic Logs
+
+The API emits structured JSON diagnostic messages through the Nest logger to its
+server console (the API service's Logs tab on Render). Next.js server failures
+appear in the frontend service's server logs. These are developer diagnostics,
+not user-facing output. Restrict deployment console and log storage access to
+authorized developers. There is no public log endpoint or in-app log viewer.
+
+The browser API client and error screen do not import the diagnostic logger or
+emit custom console logs. No browser crash-reporting requests are sent. The logger
+also refuses to write in a browser environment, regardless of log-level settings.
+
+- API requests log their route template, method, status, duration, and request ID.
+- API debug logs include controller entry/return, whether a body was received,
+  and the returned data type (not its contents).
+- Rejected DTO inputs log field names and validation rule names, never field values.
+- Unexpected API errors log source locations. Next.js server request errors and
+  API startup/crash events have dedicated event names.
+- Custom diagnostics omit request/response bodies, auth headers, phone numbers,
+	OTPs, health values, URL query strings, and raw exception messages. Framework or
+	runtime-generated logs are separate and may still contain exception details.
+
+To investigate a failed request, search the API service logs for `request.failed`
+and follow its `requestId` through `handler.started`, `handler.completed`, and
+`request.completed` events (handler events require debug logging). Validation
+failures include entries such as `field: "age", rules: ["isInt"]`. Route templates,
+controller/method names, and source locations help identify the failing code.
+
+API completion/failure logs and Next.js server errors remain enabled by default.
+Set the server-only `LOG_LEVEL=debug` environment variable for extra tracing and
+restart the relevant server. `NEXT_PUBLIC_LOG_LEVEL` is not used. Deploy the
+backend with its `X-Request-ID` CORS allowance before the frontend when using a
+cross-origin API URL.
+
+Inspect/DevTools can always show browser-owned information: network requests,
+responses, opaque request IDs, downloaded JavaScript, and native browser/framework
+errors. This cannot be hidden by application logging settings. Never send private
+developer logs, secrets, or internal stack traces as response data. Use production
+builds (`npm run build` then `npm start`) for users, not `next dev`, which exposes
+framework development diagnostics.
+
+This is boundary-level logging, not a dump of every function argument. Existing
+DTO validators detect missing/invalid request fields; logging does not validate
+every internal function or guarantee the shape of every JSON response. Logs cannot
+diagnose silently incorrect business results by themselves. Purely client-side
+crashes and requests that never reach a server will not appear in these logs.
+Capturing those remotely would require browser telemetry whose outgoing requests
+are inspectable. No remote crash collector or alerting service is configured.
+
 ## Project Layout
 
 ```text

@@ -23,33 +23,45 @@ export function isOnboardingReady(onboarding: OnboardingData): boolean {
 }
 
 export class ApiError extends Error {
-  constructor(public readonly status: number, message: string) {
+  constructor(public readonly status: number, message: string, public readonly requestId?: string) {
     super(message);
     this.name = 'ApiError';
   }
 }
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
+  let requestId: string | undefined = globalThis.crypto?.randomUUID?.();
   let response: Response;
   try {
+    const headers = new Headers(options?.headers);
+    if (!headers.has('Content-Type')) headers.set('Content-Type', 'application/json');
+    const token = typeof window !== 'undefined' ? sessionStorage.getItem(ACCESS_TOKEN_KEY) : null;
+    if (token && !headers.has('Authorization')) headers.set('Authorization', `Bearer ${token}`);
+    if (requestId) headers.set('X-Request-ID', requestId);
     response = await fetch(`${API_URL}${path}`, {
       cache: 'no-store',
-      headers: { 'Content-Type': 'application/json', ...(typeof window !== 'undefined' && sessionStorage.getItem(ACCESS_TOKEN_KEY) ? { Authorization: `Bearer ${sessionStorage.getItem(ACCESS_TOKEN_KEY)}` } : {}), ...(options?.headers ?? {}) },
       ...options,
+      headers,
     });
   } catch {
-    throw new ApiError(0, 'Unable to connect to Formwell. Please try again.');
+    throw new ApiError(0, 'Unable to connect to Formwell. Please try again.', requestId);
   }
+  const serverRequestId = response.headers.get('X-Request-ID');
+  if (serverRequestId && /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(serverRequestId)) requestId = serverRequestId;
   if (!response.ok) {
     const payload = await response.json().catch(() => null) as { message?: string | string[] } | null;
     const message = Array.isArray(payload?.message) ? payload.message.join(', ') : payload?.message;
     if (response.status === 404 && !message) {
-      throw new ApiError(response.status, 'The Formwell API is unavailable at its configured address. Please contact the site administrator.');
+      throw new ApiError(response.status, 'The Formwell API is unavailable at its configured address. Please contact the site administrator.', requestId);
     }
-    throw new ApiError(response.status, message ?? `Request failed with status ${response.status}.`);
+    throw new ApiError(response.status, message ?? `Request failed with status ${response.status}.`, requestId);
   }
   if (response.status === 204) return undefined as T;
-  return response.json() as Promise<T>;
+  try {
+    return await response.json() as T;
+  } catch {
+    throw new ApiError(response.status, 'Formwell returned an unreadable response. Please try again.', requestId);
+  }
 }
 
 export const fitnessApi = {

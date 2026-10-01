@@ -1,0 +1,76 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Validate backend logging",
+			"type": "shell",
+			"command": "npm.cmd",
+			"args": [
+				"--prefix",
+				"backend",
+				"test",
+				"--",
+				"--runInBand",
+				"http-logging.spec.ts"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Test frontend API diagnostics",
+			"type": "shell",
+			"command": "node",
+			"args": [
+				"--test",
+				"lib/api.test.cjs"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Test backend regression suite",
+			"type": "shell",
+			"command": "npm.cmd",
+			"args": [
+				"--prefix",
+				"backend",
+				"test",
+				"--",
+				"--runInBand"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Check backend production types",
+			"type": "shell",
+			"command": "node",
+			"args": [
+				"backend/node_modules/typescript/bin/tsc",
+				"--project",
+				"backend/tsconfig.build.json",
+				"--noEmit"
+			],
+			"isBackground": false,
+			"problemMatcher": [
+				"$tsc"
+			],
+			"group": "build"
+		},
+		{
+			"label": "Build frontend",
+			"type": "shell",
+			"command": "npm.cmd",
+			"args": [
+				"run",
+				"build"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		}
+	]
+}
