@@ -1,0 +1,73 @@
+{
+  "source": "https://github.com/makehumancommunity/makehuman",
+  "revision": "a8bc2d54ff0ac92e78ff71431b1023eda42bf482",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://github.com/makehumancommunity/makehuman/blob/a8bc2d54ff0ac92e78ff71431b1023eda42bf482/LICENSE.ASSETS.md",
+  "targets": {
+    "african-male-young.target": 0.3333333333333333,
+    "asian-male-young.target": 0.3333333333333333,
+    "caucasian-male-young.target": 0.3333333333333333,
+    "universal-male-young-maxmuscle-averageweight.target": 0.8,
+    "universal-male-young-maxmuscle-minweight.target": 0.2
+  },
+  "sourceFiles": [
+    {
+      "path": "LICENSE.ASSETS.md",
+      "sha256": "f6089cba01cb570a24712b41ab8a586ccd3cc5ef53dc266ca50b95c288956d2c"
+    },
+    {
+      "path": "makehuman/data/3dobjs/base.obj",
+      "sha256": "8e761e6624b8f54536409135d1636da63b32486a90d4897f84e121d144f6fb4c"
+    },
+    {
+      "path": "makehuman/data/targets/macrodetails/african-male-young.target",
+      "sha256": "894abc1fbb3d28543a51fef16f89d5d4bdf9aa2e1534413339811a3d47818b7d"
+    },
+    {
+      "path": "makehuman/data/targets/macrodetails/asian-male-young.target",
+      "sha256": "ed2e8c191cb6b87b4a2d97c80486acb2604fa549316c7aa2a738a5d5a14334dc"
+    },
+    {
+      "path": "makehuman/data/targets/macrodetails/caucasian-male-young.target",
+      "sha256": "70e228ba7164737dae664454394536fc5935fa48d333c1a97d77e2dc6eacc5f5"
+    },
+    {
+      "path": "makehuman/data/targets/macrodetails/universal-male-young-maxmuscle-averageweight.target",
+      "sha256": "c171ff9cc95e96273beb3e3b1969a01988c2d4982ebc6fe04bf81cf72ee3b295"
+    },
+    {
+      "path": "makehuman/data/targets/macrodetails/universal-male-young-maxmuscle-minweight.target",
+      "sha256": "5873f11edc96fde72a79ec35fa1d292a6a1a594b5eadfd82d59faf48834561de"
+    }
+  ],
+  "sha256": "384fb612e9a84641d9acad126968ecbb78b7992b591c823c70210e40997ea15f",
+  "bytes": 2598688,
+  "heightMeters": 1.72,
+  "regions": {
+    "neutral": 37212,
+    "hair": 984,
+    "chest": 2110,
+    "shoulders": 1024,
+    "back": 1614,
+    "biceps": 460,
+    "triceps": 152,
+    "quads": 5918,
+    "core": 1256,
+    "glutes": 830,
+    "shorts": 1260,
+    "hamstrings": 252,
+    "calves": 440
+  },
+  "modifications": [
+    "Adult muscular morph blend",
+    "Helpers removed",
+    "One subdivision level",
+    "Approximate surface muscle regions",
+    "Compression-short and scalp materials",
+    "Generated eye surfaces"
+  ],
+  "limitations": [
+    "Not anatomical muscle meshes",
+    "Not a validated exercise rig"
+  ]
+}

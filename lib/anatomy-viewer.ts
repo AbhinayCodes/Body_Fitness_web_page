@@ -1,6 +1,9 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { jointBetween, samplePose, type ExerciseGuide, type Muscle } from './exercise-guides';
+import type { AthleticPart } from './athletic-model';
+
+export type ModelSource = 'anatomy' | 'athletic' | 'cc0';
 
 type Joint = { name: string; parent: string | null; position: THREE.Vector3 };
 const vector = (horizontal: number, height: number, depth: number) => new THREE.Vector3(horizontal, height, depth);
@@ -104,19 +107,53 @@ function prepareModel() {
   return preparedModel;
 }
 
-export async function createAnatomyViewer(canvas: HTMLCanvasElement, guide: ExerciseGuide, signal: AbortSignal) {
-  const parts = await prepareModel();
+let preparedAthlete: Promise<AthleticPart[]> | undefined;
+export function skinAthleticModel(parts: AthleticPart[]) {
+  parts.forEach((part) => skinGeometry(part.geometry, 'neutral'));
+}
+
+function prepareAthlete() {
+  preparedAthlete ??= import('./athletic-model').then(({ createAthleticModel }) => {
+    const parts = createAthleticModel();
+    skinAthleticModel(parts);
+    return parts;
+  }).catch((error: unknown) => { preparedAthlete = undefined; throw error; });
+  return preparedAthlete;
+}
+
+let preparedCc0: Promise<AthleticPart[]> | undefined;
+function prepareCc0() {
+  preparedCc0 ??= fetch('/models/cc0-human.glb').then(async (response) => {
+    if (!response.ok) throw new Error('CC0 model could not be loaded.');
+    const asset = await new GLTFLoader().parseAsync(await response.arrayBuffer(), '');
+    const parts: AthleticPart[] = [];
+    asset.scene.updateMatrixWorld(true);
+    asset.scene.traverse((object) => {
+      if (!(object instanceof THREE.Mesh)) return;
+      const material = Array.isArray(object.material) ? object.material[0] : object.material;
+      parts.push({ geometry: object.geometry.clone().applyMatrix4(object.matrixWorld), muscle: material.userData.muscleGroup ?? 'neutral', color: material.userData.fixedColor });
+      object.geometry.dispose();
+      material.dispose();
+    });
+    return parts;
+  }).catch((error: unknown) => { preparedCc0 = undefined; throw error; });
+  return preparedCc0;
+}
+
+export async function createAnatomyViewer(canvas: HTMLCanvasElement, guide: ExerciseGuide, signal: AbortSignal, source: ModelSource = 'anatomy') {
+  const parts: AthleticPart[] = await (source === 'cc0' ? prepareCc0() : source === 'athletic' ? prepareAthlete() : prepareModel());
+  const athleticTools = source === 'athletic' ? await import('./athletic-model') : null;
   if (signal.aborted) return null;
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false, preserveDrawingBuffer: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   renderer.setClearColor('#f5f6f5');
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.1;
+  renderer.toneMappingExposure = source !== 'anatomy' ? 1 : 1.1;
   const scene = new THREE.Scene();
   const camera = new THREE.OrthographicCamera(-1.4, 1.4, 1.05, -1.05, 0.01, 30);
-  scene.add(new THREE.HemisphereLight('#ffffff', '#777f87', 1.6));
-  const keyLight = new THREE.DirectionalLight('#ffffff', 2.6); keyLight.position.set(-2, 4, 4); scene.add(keyLight);
+  scene.add(new THREE.HemisphereLight('#ffffff', '#777f87', source !== 'anatomy' ? 0.95 : 1.6));
+  const keyLight = new THREE.DirectionalLight('#ffffff', source !== 'anatomy' ? 3.2 : 2.6); keyLight.position.set(-2, 4, 4); scene.add(keyLight);
   const edgeLight = new THREE.DirectionalLight('#d7e6ef', 1.5); edgeLight.position.set(3, 2, -3); scene.add(edgeLight);
   const body = new THREE.Group(); scene.add(body);
   const bones = new Map<string, THREE.Bone>();
@@ -130,12 +167,43 @@ export async function createAnatomyViewer(canvas: HTMLCanvasElement, guide: Exer
   body.updateMatrixWorld(true);
   const skeleton = new THREE.Skeleton([...bones.values()]);
   skeleton.calculateInverses();
+  const details = new Map<Muscle, THREE.DataTexture>();
+  const highlightMaterials: Array<{ material: THREE.MeshStandardMaterial; blended: boolean; neutralColor: string }> = [];
   parts.forEach((part) => {
     const geometry = part.geometry.clone();
-    const highlighted = guide.muscles.includes(part.muscle);
-    const material = new THREE.MeshStandardMaterial({ color: highlighted ? '#cf2637' : '#b6b9bd', roughness: 0.78, metalness: 0 });
-    const mesh = new THREE.SkinnedMesh(geometry, material);
-    mesh.frustumCulled = false; mesh.bind(skeleton, new THREE.Matrix4()); body.add(mesh);
+    const highlighted = part.muscle !== 'neutral' && guide.muscles.includes(part.muscle);
+    const neutralColor = part.color ?? (source !== 'anatomy' ? '#c8c9c7' : '#b6b9bd');
+    const material = new THREE.MeshStandardMaterial({ color: highlighted ? '#cf2637' : neutralColor, roughness: part.color ? 0.86 : source !== 'anatomy' ? 0.54 : 0.78, metalness: 0 });
+    const coverage = geometry.getAttribute('muscleCoverage');
+    if (source === 'athletic' && highlighted && coverage && !part.color) {
+      const neutral = new THREE.Color('#c8c9c7');
+      const active = new THREE.Color('#cf2637');
+      const color = new THREE.Color();
+      const values = new Float32Array(coverage.count * 3);
+      for (let index = 0; index < coverage.count; index++) {
+        color.copy(neutral).lerp(active, coverage.getX(index));
+        color.toArray(values, index * 3);
+      }
+      geometry.setAttribute('color', new THREE.Float32BufferAttribute(values, 3));
+      material.color.set('#ffffff');
+      material.vertexColors = true;
+    }
+    if (athleticTools && part.muscle !== 'neutral' && !part.color) {
+      let detail = details.get(part.muscle);
+      if (!detail) {
+        detail = athleticTools.createMuscleDetail(part.muscle);
+        detail.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+        details.set(part.muscle, detail);
+      }
+      material.map = detail;
+      material.bumpMap = detail;
+      material.bumpScale = 0.00035;
+    }
+    const mesh = source === 'cc0' ? new THREE.Mesh(geometry, material) : new THREE.SkinnedMesh(geometry, material);
+    if (highlighted) highlightMaterials.push({ material, blended: material.vertexColors, neutralColor });
+    mesh.frustumCulled = false;
+    if (mesh instanceof THREE.SkinnedMesh) mesh.bind(skeleton, new THREE.Matrix4());
+    body.add(mesh);
   });
   const floor = new THREE.Mesh(new THREE.PlaneGeometry(200, 200), new THREE.MeshStandardMaterial({ color: '#eeefed', roughness: 1 }));
   floor.rotation.x = -Math.PI / 2; floor.position.y = -0.02; scene.add(floor);
@@ -185,7 +253,16 @@ export async function createAnatomyViewer(canvas: HTMLCanvasElement, guide: Exer
     const parentRotation = bone.parent!.getWorldQuaternion(new THREE.Quaternion());
     bone.quaternion.copy(parentRotation.invert().multiply(desired)); body.updateMatrixWorld(true);
   };
-  const update = (progress: number, mode: 'movement' | 'muscles', angle: number) => {
+  let highlightsVisible = true;
+  const update = (progress: number, mode: 'movement' | 'muscles', angle: number, highlightMuscles = true) => {
+    if (highlightMuscles !== highlightsVisible) {
+      highlightMaterials.forEach(({ material, blended, neutralColor }) => {
+        material.color.set(highlightMuscles ? blended ? '#ffffff' : '#cf2637' : neutralColor);
+        material.vertexColors = highlightMuscles && blended;
+        material.needsUpdate = true;
+      });
+      highlightsVisible = highlightMuscles;
+    }
     joints.forEach((joint) => bones.get(joint.name)!.quaternion.identity());
     const pose = samplePose(guide, progress);
     const pelvis = bones.get('pelvis')!;
@@ -268,6 +345,7 @@ export async function createAnatomyViewer(canvas: HTMLCanvasElement, guide: Exer
     update,
     dispose: () => {
       skeleton.dispose();
+      details.forEach((detail) => detail.dispose());
       scene.traverse((object) => { if (object instanceof THREE.Mesh || object instanceof THREE.Line) { object.geometry.dispose(); const list = Array.isArray(object.material) ? object.material : [object.material]; list.forEach((material) => material.dispose()); } });
       equipmentMaterial.dispose(); barMaterial.dispose(); renderer.dispose(); renderer.forceContextLoss();
     },

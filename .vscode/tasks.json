@@ -71,6 +71,21 @@
 			"isBackground": false,
 			"problemMatcher": [],
 			"group": "build"
+		},
+		{
+			"label": "Build CC0 human",
+			"type": "shell",
+			"command": "${env:TEMP}\\blender-4.5.14-windows-x64\\blender.exe",
+			"args": [
+				"--background",
+				"--factory-startup",
+				"--disable-autoexec",
+				"--python",
+				"scripts/build-cc0-human.py"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
 		}
 	]
 }
