@@ -7,7 +7,20 @@ import type { createAnatomyViewer, ModelSource } from '@/lib/anatomy-viewer';
 
 const muscleNames: Record<Muscle, string> = { quads: 'Quadriceps', glutes: 'Glutes', hamstrings: 'Hamstrings', chest: 'Chest', triceps: 'Triceps', back: 'Back', biceps: 'Biceps', shoulders: 'Shoulders', core: 'Core', calves: 'Calves' };
 
-export function ExerciseDemo({ guide, instructions, modelSource = 'anatomy', initialMode = 'movement' }: { guide: ExerciseGuide; instructions: string[]; modelSource?: ModelSource; initialMode?: 'movement' | 'muscles' }) {
+export function WorkoutExerciseDemo({ guide, instructions }: { guide: ExerciseGuide; instructions: string[] }) {
+  const [source, setSource] = useState<'cc0' | 'anatomy'>('cc0');
+  return <div>
+    <label style={{ display: 'grid', gap: 6, marginBottom: 12, maxWidth: '100%', fontSize: 13 }}>Model
+      <select value={source} onChange={(event) => setSource(event.target.value === 'anatomy' ? 'anatomy' : 'cc0')} style={{ width: '100%', maxWidth: 300, padding: '10px 12px' }}>
+        <option value="cc0">Human body (static)</option>
+        <option value="anatomy">Anatomical animation</option>
+      </select>
+    </label>
+    <ExerciseDemo key={source} guide={guide} instructions={instructions} modelSource={source} initialHighlights />
+  </div>;
+}
+
+export function ExerciseDemo({ guide, instructions, modelSource = 'anatomy', initialMode = 'movement', initialHighlights = modelSource !== 'cc0' }: { guide: ExerciseGuide; instructions: string[]; modelSource?: ModelSource; initialMode?: 'movement' | 'muscles'; initialHighlights?: boolean }) {
   const canvas = useRef<HTMLCanvasElement>(null);
   const viewer = useRef<Awaited<ReturnType<typeof createAnatomyViewer>>>(null);
   const clock = useRef(0);
@@ -18,7 +31,7 @@ export function ExerciseDemo({ guide, instructions, modelSource = 'anatomy', ini
   const [angle, setAngle] = useState(35);
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
   const [attempt, setAttempt] = useState(0);
-  const [highlightMuscles, setHighlightMuscles] = useState(modelSource !== 'cc0');
+  const [highlightMuscles, setHighlightMuscles] = useState(initialHighlights);
   const headingId = useId();
 
   useEffect(() => {
@@ -72,7 +85,7 @@ export function ExerciseDemo({ guide, instructions, modelSource = 'anatomy', ini
     <ul className="demo-muscles" aria-label="Working muscles">{guide.muscles.map((muscle) => <li key={muscle}>{muscleNames[muscle]}</li>)}</ul>
     {guide.slug === 'brisk-walk-interval' && <p className="subtle">Whole-body cardiovascular exercise; the highlighted muscles help power your stride.</p>}
     <ol className="demo-steps">{instructions.map((instruction, index) => <li key={`${index}-${instruction}`}>{instruction}</li>)}</ol>
-    <p className="demo-cue">{guide.cue}</p><p className="demo-safety">Illustrative motion, not a form assessment. Use a comfortable range and stop if you feel pain. Ask a qualified trainer to check unfamiliar movements.</p>
+    <p className="demo-cue">{guide.cue}</p><p className="demo-safety">{modelSource === 'anatomy' ? 'Illustrative motion' : 'Illustrative muscle regions'}, not a form assessment. Use a comfortable range and stop if you feel pain. Ask a qualified trainer to check unfamiliar movements.</p>
     {modelSource === 'anatomy' ? <p className="demo-attribution"><a href="https://github.com/Z-Anatomy/Models-of-human-anatomy" target="_blank" rel="noreferrer">Z-Anatomy / BodyParts3D</a> · Adapted model · <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noreferrer">CC BY-SA 4.0</a> · <a href="/models/README.md" target="_blank" rel="noreferrer">Credits</a></p> : <p className="demo-attribution">{modelSource === 'cc0' ? 'MakeHuman Community · CC0 · Approximate surface highlights' : 'Original procedural character · Prototype'} · <a href="/models/README.md" target="_blank" rel="noreferrer">Model details</a></p>}
   </section>;
 }

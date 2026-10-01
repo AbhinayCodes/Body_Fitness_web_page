@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Play } from 'lucide-react';
-import { ExerciseDemo } from '@/components/AnatomicalExerciseDemo';
+import { WorkoutExerciseDemo as ExerciseDemo } from '@/components/AnatomicalExerciseDemo';
 import { findExerciseGuide } from '@/lib/exercise-guides';
 import { ApiError, fitnessApi } from '@/lib/api';
 import type { GeneratedWorkoutPlan, Profile, ProgressSummary, ReminderSettings, TodayExperience } from '@/types/fitness';

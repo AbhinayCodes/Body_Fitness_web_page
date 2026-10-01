@@ -2,7 +2,7 @@
 
 ## CC0 Human Base
 
-The default `/model-preview` option loads `cc0-human.glb`, adapted from the
+The default Workout guide and `/model-preview` option load `cc0-human.glb`, adapted from the
 MakeHuman Community core base mesh and adult male muscular targets. The source
 art assets are **CC0 1.0 Universal**, not the software's AGPL license.
 
@@ -22,7 +22,9 @@ The displayed muscle regions are approximate surface selections, not separate
 anatomical muscles or a clinical muscle atlas. This is a neutral-pose model
 study, not an exercise animation or the GymVisual reference character. It needs
 further muscle detailing and a fitted rig before animated exercise use. The
-workout page still uses the existing atlas. The procedural prototype remains
+workout page defaults to this static body with muscle highlights enabled. Its
+Model selector offers the existing atlas under "Anatomical animation" for
+movement playback. Switching models does not log sets. The procedural prototype remains
 available in the preview's Model selector for comparison.
 
 Rebuild with Blender 4.5 and network access on the first run:
@@ -58,7 +60,7 @@ reference fidelity. The preview exposes standing muscle views and camera
 rotation only. Trial rigging showed garment/body intersections in deep hip
 flexion, so exercise playback is not exposed for this model. Further sculpting,
 topology and garment weighting are required before using it in exercise guides.
-The existing workout viewer is unchanged pending visual approval.
+This procedural prototype remains preview-only; Workout uses the CC0 body by default.
 
 Ellim identifies its reference exercise GIFs as commercially licensed GymVisual
 content at https://www.ellim.app/licenses. Those GIFs are not bundled here.
