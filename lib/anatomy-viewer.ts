@@ -22,7 +22,20 @@ const joints: Joint[] = [
   ]),
 ];
 
-function skinGeometry(geometry: THREE.BufferGeometry) {
+const muscleBones: Record<Muscle, RegExp> = {
+  quads: /^(pelvis|leg|knee)/,
+  glutes: /^(pelvis|leg)/,
+  hamstrings: /^(pelvis|leg|knee)/,
+  chest: /^(spine|chest)$/,
+  triceps: /^(arm|elbow)/,
+  back: /^(pelvis|spine|chest|neck)$/,
+  biceps: /^(arm|elbow)/,
+  shoulders: /^(chest|arm)/,
+  core: /^(pelvis|spine|chest)$/,
+  calves: /^(knee|ankle)/,
+};
+
+export function skinGeometry(geometry: THREE.BufferGeometry, muscle: Muscle | 'neutral') {
   const position = geometry.getAttribute('position');
   const indices = new Uint16Array(position.count * 4);
   const weights = new Float32Array(position.count * 4);
@@ -34,7 +47,14 @@ function skinGeometry(geometry: THREE.BufferGeometry) {
   const closest = new THREE.Vector3();
   for (let index = 0; index < position.count; index++) {
     vertex.fromBufferAttribute(position, index);
-    const candidates = segments.map((segment) => {
+    const allowed = muscle === 'neutral' ? null : muscleBones[muscle];
+    const candidates = segments.filter((segment) => {
+      if (allowed) return allowed.test(segment.joint.name);
+      if (vertex.y > 1.5) return segment.joint.name === 'head';
+      if (vertex.y > 1.45) return /^(neck|head)$/.test(segment.joint.name);
+      if (vertex.y > 0.94 && Math.abs(vertex.x) < 0.145) return /^(spine|chest|neck)$/.test(segment.joint.name);
+      return true;
+    }).map((segment) => {
       segment.line.closestPointToPoint(vertex, true, closest);
       let distance = closest.distanceTo(vertex);
       if (Math.abs(vertex.x) > 0.04 && Math.sign(vertex.x) !== Math.sign(segment.joint.position.x) && segment.joint.position.x !== 0) distance += 1;
@@ -73,7 +93,7 @@ function prepareModel() {
           indices.setX(index + 2, first);
         }
       }
-      skinGeometry(geometry);
+      skinGeometry(geometry, object.userData.muscleGroup as Muscle | 'neutral');
       parts.push({ geometry, muscle: object.userData.muscleGroup as Muscle });
       object.geometry.dispose();
       const materials = Array.isArray(object.material) ? object.material : [object.material];
@@ -113,7 +133,7 @@ export async function createAnatomyViewer(canvas: HTMLCanvasElement, guide: Exer
   parts.forEach((part) => {
     const geometry = part.geometry.clone();
     const highlighted = guide.muscles.includes(part.muscle);
-    const material = new THREE.MeshStandardMaterial({ color: highlighted ? '#cd1c2c' : '#a5aaae', roughness: 0.55, metalness: 0.08 });
+    const material = new THREE.MeshStandardMaterial({ color: highlighted ? '#cf2637' : '#b6b9bd', roughness: 0.78, metalness: 0 });
     const mesh = new THREE.SkinnedMesh(geometry, material);
     mesh.frustumCulled = false; mesh.bind(skeleton, new THREE.Matrix4()); body.add(mesh);
   });
@@ -131,7 +151,17 @@ export async function createAnatomyViewer(canvas: HTMLCanvasElement, guide: Exer
     for (const depth of [-0.75, -0.06]) box(0.3, benchHeight, 0.06, vector(0, benchHeight / 2, guide.equipment === 'row' ? depth + 1.1 : depth));
   }
   if (guide.equipment === 'pulldown') { box(0.44, 0.08, 0.45, vector(0, 0.51, 0)); box(0.06, 1.95, 0.06, vector(0, 0.97, 0.55)); box(0.65, 0.06, 0.06, vector(0, 1.95, 0.55)); }
-  if (guide.equipment === 'leg-press') { const backrest = box(0.48, 0.1, 0.85, vector(0, 0.57, -0.4)); backrest.rotation.x = 0.95; box(0.48, 0.09, 0.3, vector(0, 0.26, -0.05)); }
+  const pressPelvis = vector(0, 0.43, -0.2);
+  const pressLean = -35 * Math.PI / 180;
+  const pressUp = vector(0, Math.cos(pressLean), Math.sin(pressLean));
+  const pressNormal = vector(0, -Math.sin(pressLean), Math.cos(pressLean));
+  const pressAxis = vector(0, Math.SQRT1_2, Math.SQRT1_2);
+  if (guide.equipment === 'leg-press') {
+    const backrest = box(0.38, 0.06, 0.78, pressPelvis.clone().addScaledVector(pressUp, 0.31).addScaledVector(pressNormal, -0.15));
+    backrest.rotation.x = Math.PI / 2 + pressLean;
+    box(0.42, 0.06, 0.32, pressPelvis.clone().add(vector(0, -0.16, 0.04)));
+    for (const side of [-1, 1]) box(0.035, 0.035, 0.24, pressPelvis.clone().add(vector(side * 0.27, -0.08, 0.06)));
+  }
   const weights: THREE.Group[] = [];
   const addWeight = (barbell: boolean) => {
     const weight = new THREE.Group();
@@ -145,7 +175,7 @@ export async function createAnatomyViewer(canvas: HTMLCanvasElement, guide: Exer
   const bands = ['band-row', 'band-press', 'pulldown'].includes(guide.equipment) ? [-1, 1].map(() => {
     const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints([vector(0, 0, 0), vector(0, 0, 0)]), new THREE.LineBasicMaterial({ color: guide.equipment === 'pulldown' ? '#626a6a' : '#ba8130' })); equipment.add(line); return line;
   }) : [];
-  const platform = guide.equipment === 'leg-press' ? box(0.58, 0.08, 0.4, vector(0, 0.8, 0.4)) : null;
+  const platform = guide.equipment === 'leg-press' ? box(0.56, 0.06, 0.38, vector(0, 0.8, 0.4)) : null;
   const world = (name: string) => bones.get(name)!.getWorldPosition(new THREE.Vector3());
   const direct = (name: string, childName: string, target: THREE.Vector3) => {
     const bone = bones.get(name)!;
@@ -164,6 +194,10 @@ export async function createAnatomyViewer(canvas: HTMLCanvasElement, guide: Exer
     else {
       pelvis.position.set(0, (316 - pose.hip[1]) * 0.0067, (pose.hip[0] - 228) * 0.0067);
       pelvis.rotation.x = pose.lean * Math.PI / 180;
+      if (guide.equipment === 'leg-press') {
+        pelvis.position.copy(pressPelvis);
+        pelvis.rotation.x = pressLean;
+      }
       if (guide.slug === 'dumbbell-shoulder-press') pelvis.position.y = 0.89;
       if (guide.slug === 'push-up') {
         const lowered = (1 - Math.cos(progress * Math.PI * 2)) / 2;
@@ -177,16 +211,22 @@ export async function createAnatomyViewer(canvas: HTMLCanvasElement, guide: Exer
         const staggered = ['split-squat', 'brisk-walk-interval', 'dumbbell-row', 'band-chest-press'].includes(guide.slug);
         const footDepth = staggered ? pose.feet[index][0] : (pose.feet[0][0] + pose.feet[1][0]) / 2;
         const ankle = vector(side * 0.105, (310 - pose.feet[index][1]) * 0.0067 + 0.087, (footDepth - 228) * 0.0067);
+        if (guide.equipment === 'leg-press') {
+          const lowered = (1 - Math.cos(progress * Math.PI * 2)) / 2;
+          ankle.copy(pressPelvis).addScaledVector(pressAxis, 0.72 - lowered * 0.24).setX(side * 0.105);
+        }
         if (guide.slug === 'push-up') ankle.z = -0.84;
         const knee = jointBetween([hip.z, -hip.y], [ankle.z, -ankle.y], 0.439, 0.346, pose.knees[index]);
         const straight = ['push-up', 'plank', 'dumbbell-shoulder-press'].includes(guide.slug);
         direct(`leg${side}`, `knee${side}`, straight ? hip.clone().lerp(ankle, 0.56) : vector(side * 0.08, -knee[1], knee[0]));
         direct(`knee${side}`, `ankle${side}`, ankle);
         bones.get(`ankle${side}`)!.quaternion.copy(bones.get(`ankle${side}`)!.parent!.getWorldQuaternion(new THREE.Quaternion()).invert());
+        if (guide.equipment === 'leg-press') bones.get(`ankle${side}`)!.quaternion.multiply(new THREE.Quaternion().setFromAxisAngle(vector(1, 0, 0), -3 * Math.PI / 4));
         body.updateMatrixWorld(true);
         const shoulder = world(`arm${side}`);
         const frontal = guide.view === 'Front view';
         const wrist = frontal ? vector((pose.hands[index][0] - 228) * 0.0067, (316 - pose.hands[index][1]) * 0.0067, 0.1) : vector(side * (guide.equipment === 'goblet' ? 0.035 : 0.2), (316 - pose.hands[index][1]) * 0.0067, (pose.hands[index][0] - 228) * 0.0067);
+        if (guide.equipment === 'leg-press') wrist.copy(pressPelvis).add(vector(side * 0.27, -0.01, 0.1));
         if (guide.slug === 'push-up') wrist.set(side * 0.2, 0.075, 0.18);
         if (guide.slug === 'plank') wrist.set(side * 0.2, 0.065, shoulder.z + 0.237);
         if (guide.slug === 'glute-bridge') wrist.set(side * 0.2, 0.065, shoulder.z + 0.49);
@@ -207,15 +247,19 @@ export async function createAnatomyViewer(canvas: HTMLCanvasElement, guide: Exer
         const anchor = guide.equipment === 'pulldown' ? vector(0, 1.95, 0.55) : vector(index === 0 ? -0.2 : 0.2, 1.36, guide.equipment === 'band-row' ? 1.15 : -1);
         line.geometry.setFromPoints([anchor, index === 0 ? left : right]);
       });
-      if (platform) { platform.position.copy(world('ankle1')).setX(0); platform.position.z += 0.08; platform.rotation.x = -0.8; }
+      if (platform) {
+        platform.position.copy(world('ankle1')).setX(0).addScaledVector(pressAxis, 0.115).add(vector(0, 0.046, -0.046));
+        platform.rotation.x = Math.PI / 4;
+      }
     }
     body.updateMatrixWorld(true);
     const floorPose = ['push-up', 'plank', 'glute-bridge', 'dumbbell-floor-press', 'barbell-bench-press'].includes(guide.slug) && mode === 'movement';
-    const target = vector(0, floorPose ? 0.46 : 0.86, floorPose ? -0.15 : 0);
+    const legPress = guide.equipment === 'leg-press' && mode === 'movement';
+    const target = vector(0, floorPose ? 0.46 : legPress ? 0.74 : 0.86, floorPose ? -0.15 : 0);
     const azimuth = angle * Math.PI / 180;
     camera.position.set(Math.sin(azimuth) * 4, target.y + 0.4, Math.cos(azimuth) * 4); camera.lookAt(target);
     const overhead = ['dumbbell-shoulder-press', 'lat-pulldown'].includes(guide.slug) && mode === 'movement';
-    const height = mode === 'muscles' ? 1.95 : overhead ? 2.35 : floorPose ? 1.65 : 2.05;
+    const height = mode === 'muscles' ? 1.95 : overhead ? 2.35 : floorPose ? 1.65 : legPress ? 1.5 : 2.05;
     const width = canvas.clientWidth || 600; const canvasHeight = canvas.clientHeight || 450;
     camera.top = height / 2; camera.bottom = -height / 2; camera.left = -height * width / canvasHeight / 2; camera.right = -camera.left; camera.updateProjectionMatrix();
     renderer.setSize(width, canvasHeight, false); renderer.render(scene, camera);
