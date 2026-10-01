@@ -1,4 +1,7 @@
 import { useEffect, useState } from 'react';
+import { Play } from 'lucide-react';
+import { ExerciseDemo } from '@/components/AnatomicalExerciseDemo';
+import { findExerciseGuide } from '@/lib/exercise-guides';
 import { ApiError, fitnessApi } from '@/lib/api';
 import type { GeneratedWorkoutPlan, Profile, ProgressSummary, ReminderSettings, TodayExperience } from '@/types/fitness';
 
@@ -14,12 +17,16 @@ function useTodayPlan() {
 
 export function WorkoutPage() {
 	const { today, error, busy, load, run } = useTodayPlan();
+	const [selectedOrder, setSelectedOrder] = useState<number | null>(null);
 	if (!today) return <p className="subtle" role={error ? 'alert' : 'status'}>{error ?? 'Loading your workout...'}{error && <button onClick={() => void load()}>Retry</button>}</p>;
 	const session = today.schedule?.workout;
 	if (!session) return <p className="subtle">{today.message ?? (today.schedule ? 'Rest day. No workout is scheduled today.' : 'Complete your training setup to view your workout.')}</p>;
+	const selected = session.exercises.find((item) => item.exerciseOrder === selectedOrder) ?? session.exercises[0];
 	return <><div className="card-title"><div><h2>{session.title}</h2><span className="micro">{session.targetMuscleGroups.join(' · ')}</span></div><span className="micro">{session.estimatedMinutes} min</span></div>{error && <div className="api-status error" role="alert">{error}</div>}<div className="workout-list">{session.exercises.map((item) => {
 		const completed = session.completedExerciseSets.find((exercise) => exercise.exerciseIndex === item.exerciseOrder)?.setsCompleted ?? 0;
-		return <div className="exercise" key={item.exerciseOrder}><div><strong>{item.exercise.name}</strong><span>{item.sets} sets · {item.reps} reps · {item.restSeconds} sec rest</span><span>{item.exercise.instructions[0]}</span></div><button className={`check ${completed >= item.sets ? 'done' : ''}`} disabled={busy || completed >= item.sets} aria-label={`Log a set of ${item.exercise.name}`} onClick={() => void run(() => fitnessApi.updateWorkoutProgress(session.id, [{ exerciseIndex: item.exerciseOrder, setsCompleted: completed + 1 }]))}>{completed}/{item.sets}</button></div>;
+		const guide = findExerciseGuide(item.exercise.name);
+		const expanded = selected?.exerciseOrder === item.exerciseOrder;
+		return <div key={item.exerciseOrder}><div className="exercise"><div><strong>{item.exercise.name}</strong><span>{item.sets} sets · {item.reps} reps · {item.restSeconds} sec rest</span><span>{item.exercise.instructions[0]}</span></div><div className="exercise-actions"><button className="icon-button" title={`View form: ${item.exercise.name}`} aria-label={`View form: ${item.exercise.name}`} aria-expanded={expanded} aria-controls={`exercise-guide-${item.exerciseOrder}`} onClick={() => setSelectedOrder(item.exerciseOrder)}><Play size={17} /></button><button className={`check ${completed >= item.sets ? 'done' : ''}`} disabled={busy || completed >= item.sets} aria-label={`Log a set of ${item.exercise.name}`} onClick={() => void run(() => fitnessApi.updateWorkoutProgress(session.id, [{ exerciseIndex: item.exerciseOrder, setsCompleted: completed + 1 }]))}>{completed}/{item.sets}</button></div></div><div id={`exercise-guide-${item.exerciseOrder}`} hidden={!expanded}>{expanded && (guide ? <ExerciseDemo key={`${session.id}-${item.exerciseOrder}-${guide.slug}`} guide={guide} instructions={item.exercise.instructions} /> : <div className="exercise-guide-fallback"><p className="subtle">Animated guide not yet available for this exercise.</p><ol className="demo-steps">{item.exercise.instructions.map((instruction, index) => <li key={index}>{instruction}</li>)}</ol></div>)}</div></div>;
 	})}</div><p className="subtle">{session.completed ? 'Workout complete.' : `${session.completedSets} / ${session.targetSets} sets complete`}</p></>;
 }
 

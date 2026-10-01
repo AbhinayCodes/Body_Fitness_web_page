@@ -39,6 +39,35 @@ The frontend reads `NEXT_PUBLIC_API_URL` when configured. Copy `.env.example` to
 NEXT_PUBLIC_API_URL=http://127.0.0.1:8000/api/v1
 ```
 
+## Workout Exercise Guides
+
+The Next.js workout page uses a detailed Z-Anatomy / BodyParts3D anatomical human
+model, rendered locally with Three.js, for all 17 seeded exercise guides. Actual
+muscle surfaces are highlighted red. Front, side, back, and rotating views are
+available alongside the full exercise instructions. Playback supports pause,
+reset, scrubbing, and half speed. Reduced-motion preferences disable autoplay;
+the plank is a static hold. Viewing a guide does not log sets or change progress.
+
+The adapted model is CC BY-SA 4.0, with source credits in the viewer and
+`public/models/README.md`. No commercial exercise GIFs or scraped animations are
+included. The local model is about 17 MB and loads on opening a guide; prepared
+geometry is reused when switching exercises. WebGL is required; loading failures
+offer retry while leaving the written instructions available. Blender is needed
+only to rebuild the asset, not to run or deploy the application.
+
+Movement definitions and target muscles live in `lib/exercise-guides.ts`; rendering
+and controls live in `lib/anatomy-viewer.ts` and
+`components/AnatomicalExerciseDemo.tsx`. Matching uses the exact catalog
+name (case-insensitive). New or renamed exercises without a matching guide show
+written instructions, never a guessed movement. Update the guide alongside catalog
+changes and run `node --test lib/exercise-guides.test.cjs` (Node 22.14+).
+
+The anatomical geometry is sourced, but the exercise motions use an illustrative
+rig, not motion capture or a validated biomechanics simulation. They do not assess
+the user's form. Have a qualified exercise professional review poses and cues
+before treating them as authoritative technique instruction. Highlights identify
+working muscle groups, not activation percentages or localized fat loss.
+
 ## API Setup
 
 Install the API dependencies:

@@ -145,6 +145,42 @@ small { display: block; }
 .check { width: 42px; height: 38px; flex: 0 0 42px; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 6px; color: var(--teal); background: white; font-size: 11px; font-weight: 700; }
 .check:hover { background: var(--blue); }
 .check.done { background: var(--teal); color: #fff; opacity: 1; border-color: var(--teal); }
+.exercise-actions { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
+.exercise-actions .icon-button { height: 38px; }
+.exercise-actions .icon-button[aria-expanded='true'] { background: var(--teal); border-color: var(--teal); color: white; }
+.exercise-demo { padding-bottom: 24px; min-width: 0; }
+.demo-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 12px 0; flex-wrap: wrap; }
+.demo-heading h3 { font-size: 17px; line-height: 1.35; margin: 3px 0; }
+.demo-modes { display: flex; padding: 3px; background: #e7ede9; border-radius: 6px; }
+.demo-modes button { padding: 7px 10px; border-radius: 4px; background: transparent; color: var(--muted); font-size: 11px; font-weight: 700; }
+.demo-modes button[aria-pressed='true'] { background: white; color: var(--ink); box-shadow: 0 1px 3px #19201e12; }
+.demo-stage { background: #edf3ef; border: 1px solid #d7e1da; border-radius: 6px; overflow: hidden; }
+.demo-stage-label, .demo-phase { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px 12px; padding: 12px 16px; font-size: 10px; color: #52675f; }
+.demo-stage-label { border-bottom: 1px solid #d7e1da; }
+.demo-red-key { display: inline-flex; align-items: center; gap: 6px; }
+.demo-red-key::before { content: ''; width: 8px; height: 8px; background: #d33c4c; border-radius: 50%; }
+.demo-stage canvas { display: block; width: 100%; aspect-ratio: 4 / 3; }
+.demo-phase { border-top: 1px solid #d7e1da; min-height: 43px; }
+.demo-phase > span:first-child { font-weight: 700; color: var(--ink); }
+.demo-controls { display: flex; align-items: center; gap: 8px; margin: 12px 0; }
+.demo-controls .icon-button { flex: 0 0 36px; }
+.demo-controls input { min-width: 0; width: 100%; accent-color: var(--teal); cursor: pointer; }
+.demo-controls select { padding: 6px; border: 1px solid var(--line); border-radius: 4px; background: white; color: var(--ink); font-size: 12px; height: 36px; }
+.demo-muscles { display: flex; flex-wrap: wrap; gap: 6px 16px; padding: 0; margin: 16px 0; list-style: none; }
+.demo-muscles li { display: inline-flex; align-items: center; gap: 6px; color: #a52e3c; font-size: 11px; font-weight: 700; }
+.demo-muscles li::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: #d33c4c; }
+.demo-steps { padding-left: 22px; font-size: 12px; line-height: 1.7; margin: 16px 0; }
+.demo-steps li { padding-left: 4px; margin: 7px 0; }
+.demo-steps li::marker { color: var(--teal); font-weight: 700; }
+.demo-cue { border-left: 3px solid var(--teal); padding-left: 12px; font-size: 12px; line-height: 1.7; margin: 16px 0; }
+.demo-safety { font-size: 10px; color: var(--muted); line-height: 1.7; margin-bottom: 0; }
+.demo-anatomy { background: #f5f6f5; border: 0; border-radius: 0; }
+.demo-canvas-wrap { position: relative; aspect-ratio: 4 / 3; }
+.demo-canvas-wrap canvas { width: 100%; height: 100%; }
+.demo-loading { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; flex-direction: column; background: #f5f6f5; color: var(--muted); font-size: 12px; }
+.demo-angle-controls { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 14px; border-top: 1px solid var(--line); }
+.demo-attribution { font-size: 10px; color: var(--muted); line-height: 1.8; margin: 14px 0 0; }
+.demo-attribution a { color: inherit; text-underline-offset: 2px; }
 .progress-bar { height: 6px; border-radius: 4px; background: var(--line); overflow: hidden; margin: 15px 0 20px; }
 .progress-bar i { display: block; height: 100%; background: var(--teal); max-width: 100%; }
 .activity-section { background: var(--blue); padding: 22px; border: 0; border-radius: 8px; }
