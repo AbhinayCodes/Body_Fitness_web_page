@@ -12,19 +12,28 @@ art assets are **CC0 1.0 Universal**, not the software's AGPL license.
 - Exact source file hashes, morph weights and export checksum: `cc0-human.json`
 - Build source: `scripts/build-cc0-human.py`; VS Code task: `Build CC0 human`
 
-The export is approximately 2.6 MB. It blends the core adult male shape targets
+The export is approximately 3.8 MB. It blends the core adult male shape targets
 and muscular body targets, excludes helper meshes, adds one subdivision level,
 and uses locally generated eyes and simple scalp/compression-short shading.
 No MakeHuman application code is shipped in the website. The portable Blender
 installation is only needed when rebuilding the asset, not to run the website.
 
 The displayed muscle regions are approximate surface selections, not separate
-anatomical muscles or a clinical muscle atlas. This is a neutral-pose model
-study, not an exercise animation or the GymVisual reference character. It needs
-further muscle detailing and a fitted rig before animated exercise use. The
-workout page defaults to this static body with muscle highlights enabled. Its
-Model selector offers the existing atlas under "Anatomical animation" for
-movement playback. Switching models does not log sets. The procedural prototype remains
+anatomical muscles or a clinical muscle atlas. A 21-joint skeleton is fitted to
+the morphed body's joint landmarks. Blender generates skin weights before
+subdivision; export retains four normalized influences per vertex. Eyes attach
+to the head, and finger landmarks define the palm plane for floor poses.
+The viewer drives this CC0 body with the exercise pose solver and its own limb
+lengths. The Workout guide defaults to "Human body animation", with play/pause,
+seek, speed and Movement/Muscles controls. Reduced motion disables autoplay.
+The preview still opens in the neutral muscle view, with movement selectable.
+The existing atlas remains available under "Anatomical animation".
+
+This is illustrative procedural motion, not motion capture or a professionally
+validated form assessment. Finger gripping, soft-tissue compression and precise
+equipment contact are not simulated. Deep bends can still need refinement.
+The model is not the GymVisual reference character.
+Switching models does not log sets. The procedural prototype remains
 available in the preview's Model selector for comparison.
 
 Rebuild with Blender 4.5 and network access on the first run:

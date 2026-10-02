@@ -5,7 +5,7 @@ import type { AthleticPart } from './athletic-model';
 
 export type ModelSource = 'anatomy' | 'athletic' | 'cc0';
 
-type Joint = { name: string; parent: string | null; position: THREE.Vector3 };
+type Joint = { name: string; parent: string | null; position: THREE.Vector3; palmNormal?: THREE.Vector3 };
 const vector = (horizontal: number, height: number, depth: number) => new THREE.Vector3(horizontal, height, depth);
 const joints: Joint[] = [
   { name: 'pelvis', parent: null, position: vector(0, 0.89, -0.025) },
@@ -121,27 +121,52 @@ function prepareAthlete() {
   return preparedAthlete;
 }
 
-let preparedCc0: Promise<AthleticPart[]> | undefined;
+export async function prepareCc0Asset(buffer: ArrayBuffer) {
+  const asset = await new GLTFLoader().parseAsync(buffer, '');
+  const parts: AthleticPart[] = [];
+  const rigJoints: Joint[] = [];
+  asset.scene.updateMatrixWorld(true);
+  asset.scene.traverse((object) => {
+    if (!(object instanceof THREE.SkinnedMesh)) return;
+    if (!rigJoints.length) {
+      joints.forEach((joint) => {
+        const bone = object.skeleton.bones.find((candidate) => candidate.name === joint.name);
+        if (!bone) throw new Error(`CC0 rig is missing ${joint.name}`);
+        rigJoints.push({ ...joint, position: bone.getWorldPosition(new THREE.Vector3()), palmNormal: bone.userData.palmNormal ? new THREE.Vector3().fromArray(bone.userData.palmNormal) : undefined });
+      });
+    }
+    const material = Array.isArray(object.material) ? object.material[0] : object.material;
+    const geometry = object.geometry.clone().applyMatrix4(object.matrixWorld);
+    const indices = geometry.getAttribute('skinIndex');
+    const mapping = object.skeleton.bones.map((bone) => rigJoints.findIndex((joint) => joint.name === bone.name));
+    for (let vertex = 0; vertex < indices.count; vertex++) {
+      for (let influence = 0; influence < 4; influence++) {
+        const mapped = mapping[indices.getComponent(vertex, influence)];
+        if (mapped === undefined || mapped < 0) throw new Error('Unknown CC0 skin joint');
+        indices.setComponent(vertex, influence, mapped);
+      }
+    }
+    parts.push({ geometry, muscle: material.userData.muscleGroup ?? 'neutral', color: material.userData.fixedColor });
+    object.geometry.dispose();
+    material.dispose();
+  });
+  if (!parts.length || rigJoints.length !== joints.length) throw new Error('CC0 rig could not be loaded.');
+  return { parts, joints: rigJoints };
+}
+
+let preparedCc0: ReturnType<typeof prepareCc0Asset> | undefined;
 function prepareCc0() {
   preparedCc0 ??= fetch('/models/cc0-human.glb').then(async (response) => {
     if (!response.ok) throw new Error('CC0 model could not be loaded.');
-    const asset = await new GLTFLoader().parseAsync(await response.arrayBuffer(), '');
-    const parts: AthleticPart[] = [];
-    asset.scene.updateMatrixWorld(true);
-    asset.scene.traverse((object) => {
-      if (!(object instanceof THREE.Mesh)) return;
-      const material = Array.isArray(object.material) ? object.material[0] : object.material;
-      parts.push({ geometry: object.geometry.clone().applyMatrix4(object.matrixWorld), muscle: material.userData.muscleGroup ?? 'neutral', color: material.userData.fixedColor });
-      object.geometry.dispose();
-      material.dispose();
-    });
-    return parts;
+    return prepareCc0Asset(await response.arrayBuffer());
   }).catch((error: unknown) => { preparedCc0 = undefined; throw error; });
   return preparedCc0;
 }
 
 export async function createAnatomyViewer(canvas: HTMLCanvasElement, guide: ExerciseGuide, signal: AbortSignal, source: ModelSource = 'anatomy') {
-  const parts: AthleticPart[] = await (source === 'cc0' ? prepareCc0() : source === 'athletic' ? prepareAthlete() : prepareModel());
+  const cc0 = source === 'cc0' ? await prepareCc0() : null;
+  const rigJoints = cc0?.joints ?? joints;
+  const parts: AthleticPart[] = cc0?.parts ?? await (source === 'athletic' ? prepareAthlete() : prepareModel());
   const athleticTools = source === 'athletic' ? await import('./athletic-model') : null;
   if (signal.aborted) return null;
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false, preserveDrawingBuffer: true });
@@ -157,9 +182,9 @@ export async function createAnatomyViewer(canvas: HTMLCanvasElement, guide: Exer
   const edgeLight = new THREE.DirectionalLight('#d7e6ef', 1.5); edgeLight.position.set(3, 2, -3); scene.add(edgeLight);
   const body = new THREE.Group(); scene.add(body);
   const bones = new Map<string, THREE.Bone>();
-  joints.forEach((joint) => {
+  rigJoints.forEach((joint) => {
     const bone = new THREE.Bone(); bone.name = joint.name;
-    const parent = joints.find((candidate) => candidate.name === joint.parent);
+    const parent = rigJoints.find((candidate) => candidate.name === joint.parent);
     bone.position.copy(joint.position).sub(parent?.position ?? new THREE.Vector3());
     bones.set(joint.name, bone);
     if (joint.parent) bones.get(joint.parent)!.add(bone); else body.add(bone);
@@ -199,7 +224,7 @@ export async function createAnatomyViewer(canvas: HTMLCanvasElement, guide: Exer
       material.bumpMap = detail;
       material.bumpScale = 0.00035;
     }
-    const mesh = source === 'cc0' ? new THREE.Mesh(geometry, material) : new THREE.SkinnedMesh(geometry, material);
+    const mesh = new THREE.SkinnedMesh(geometry, material);
     if (highlighted) highlightMaterials.push({ material, blended: material.vertexColors, neutralColor });
     mesh.frustumCulled = false;
     if (mesh instanceof THREE.SkinnedMesh) mesh.bind(skeleton, new THREE.Matrix4());
@@ -248,12 +273,13 @@ export async function createAnatomyViewer(canvas: HTMLCanvasElement, guide: Exer
   const direct = (name: string, childName: string, target: THREE.Vector3) => {
     const bone = bones.get(name)!;
     const direction = target.clone().sub(world(name)).normalize();
-    const rest = joints.find((joint) => joint.name === childName)!.position.clone().sub(joints.find((joint) => joint.name === name)!.position).normalize();
+    const rest = rigJoints.find((joint) => joint.name === childName)!.position.clone().sub(rigJoints.find((joint) => joint.name === name)!.position).normalize();
     const desired = new THREE.Quaternion().setFromUnitVectors(rest, direction);
     const parentRotation = bone.parent!.getWorldQuaternion(new THREE.Quaternion());
     bone.quaternion.copy(parentRotation.invert().multiply(desired)); body.updateMatrixWorld(true);
   };
   let highlightsVisible = true;
+  const boneLength = (name: string, child: string) => rigJoints.find((joint) => joint.name === name)!.position.distanceTo(rigJoints.find((joint) => joint.name === child)!.position);
   const update = (progress: number, mode: 'movement' | 'muscles', angle: number, highlightMuscles = true) => {
     if (highlightMuscles !== highlightsVisible) {
       highlightMaterials.forEach(({ material, blended, neutralColor }) => {
@@ -263,11 +289,11 @@ export async function createAnatomyViewer(canvas: HTMLCanvasElement, guide: Exer
       });
       highlightsVisible = highlightMuscles;
     }
-    joints.forEach((joint) => bones.get(joint.name)!.quaternion.identity());
+    rigJoints.forEach((joint) => bones.get(joint.name)!.quaternion.identity());
     const pose = samplePose(guide, progress);
     const pelvis = bones.get('pelvis')!;
     equipment.visible = mode === 'movement';
-    if (mode === 'muscles') pelvis.position.copy(joints[0].position);
+    if (mode === 'muscles') pelvis.position.copy(rigJoints[0].position);
     else {
       pelvis.position.set(0, (316 - pose.hip[1]) * 0.0067, (pose.hip[0] - 228) * 0.0067);
       pelvis.rotation.x = pose.lean * Math.PI / 180;
@@ -293,7 +319,7 @@ export async function createAnatomyViewer(canvas: HTMLCanvasElement, guide: Exer
           ankle.copy(pressPelvis).addScaledVector(pressAxis, 0.72 - lowered * 0.24).setX(side * 0.105);
         }
         if (guide.slug === 'push-up') ankle.z = -0.84;
-        const knee = jointBetween([hip.z, -hip.y], [ankle.z, -ankle.y], 0.439, 0.346, pose.knees[index]);
+        const knee = jointBetween([hip.z, -hip.y], [ankle.z, -ankle.y], cc0 ? boneLength(`leg${side}`, `knee${side}`) : 0.439, cc0 ? boneLength(`knee${side}`, `ankle${side}`) : 0.346, pose.knees[index]);
         const straight = ['push-up', 'plank', 'dumbbell-shoulder-press'].includes(guide.slug);
         direct(`leg${side}`, `knee${side}`, straight ? hip.clone().lerp(ankle, 0.56) : vector(side * 0.08, -knee[1], knee[0]));
         direct(`knee${side}`, `ankle${side}`, ankle);
@@ -307,13 +333,24 @@ export async function createAnatomyViewer(canvas: HTMLCanvasElement, guide: Exer
         if (guide.slug === 'push-up') wrist.set(side * 0.2, 0.075, 0.18);
         if (guide.slug === 'plank') wrist.set(side * 0.2, 0.065, shoulder.z + 0.237);
         if (guide.slug === 'glute-bridge') wrist.set(side * 0.2, 0.065, shoulder.z + 0.49);
-        const elbow = frontal ? jointBetween([shoulder.x, -shoulder.y], [wrist.x, -wrist.y], 0.28, 0.237, pose.elbows[index]) : jointBetween([shoulder.z, -shoulder.y], [wrist.z, -wrist.y], 0.28, 0.237, pose.elbows[index]);
+        const upperArm = cc0 ? boneLength(`arm${side}`, `elbow${side}`) : 0.28;
+        const forearm = cc0 ? boneLength(`elbow${side}`, `wrist${side}`) : 0.237;
+        const elbow = frontal ? jointBetween([shoulder.x, -shoulder.y], [wrist.x, -wrist.y], upperArm, forearm, pose.elbows[index]) : jointBetween([shoulder.z, -shoulder.y], [wrist.z, -wrist.y], upperArm, forearm, pose.elbows[index]);
         const elbowTarget = guide.slug === 'plank' ? vector(side * 0.2, 0.065, shoulder.z) : guide.slug === 'glute-bridge' ? vector(side * 0.2, 0.065, shoulder.z + 0.27) : frontal ? vector(elbow[0], -elbow[1], 0.06) : vector(side * 0.2, -elbow[1], elbow[0]);
         direct(`arm${side}`, `elbow${side}`, elbowTarget);
         direct(`elbow${side}`, `wrist${side}`, wrist);
         if (['push-up', 'plank', 'glute-bridge'].includes(guide.slug)) {
           const wristBone = bones.get(`wrist${side}`)!;
           const palmDown = new THREE.Quaternion().setFromEuler(new THREE.Euler(-Math.PI / 2, Math.PI, 0));
+          if (cc0) {
+            const along = rigJoints.find((joint) => joint.name === `hand${side}`)!.position.clone().sub(rigJoints.find((joint) => joint.name === `wrist${side}`)!.position).normalize();
+            const palmNormal = rigJoints.find((joint) => joint.name === `wrist${side}`)!.palmNormal!;
+            const normal = palmNormal.clone().addScaledVector(along, -palmNormal.dot(along)).normalize();
+            const across = along.clone().cross(normal).normalize();
+            const rest = new THREE.Matrix4().makeBasis(across, along, normal);
+            const target = new THREE.Matrix4().makeBasis(vector(-1, 0, 0), vector(0, 0, 1), vector(0, 1, 0));
+            palmDown.setFromRotationMatrix(target.multiply(rest.invert()));
+          }
           wristBone.quaternion.copy(wristBone.parent!.getWorldQuaternion(new THREE.Quaternion()).invert().multiply(palmDown));
         }
       }

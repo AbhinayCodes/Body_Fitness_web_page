@@ -105,6 +105,46 @@ def export_model(options, revision, records, lines, vertices):
             bpy.data.objects.remove(model, do_unlink=True)
     bpy.context.view_layer.objects.active = body
     body.select_set(True)
+    rig_points = [
+        ('pelvis', None, 'joint-pelvis'),
+        ('spine', 'pelvis', 'joint-spine-3'),
+        ('chest', 'spine', 'joint-spine-1'),
+        ('neck', 'chest', 'joint-neck'),
+        ('head', 'neck', 'joint-head'),
+    ]
+    for side, suffix in [('r', '-1'), ('l', '1')]:
+        for name, parent, landmark in [
+            ('arm', 'chest', 'shoulder'), ('elbow', 'arm', 'elbow'),
+            ('wrist', 'elbow', 'hand'), ('hand', 'wrist', 'finger-3-1'),
+            ('leg', 'pelvis', 'upper-leg'), ('knee', 'leg', 'knee'),
+            ('ankle', 'knee', 'ankle'), ('foot', 'ankle', 'foot-2'),
+        ]:
+            rig_points.append((name + suffix, parent if parent in ('chest', 'pelvis') else parent + suffix, f'joint-{side}-{landmark}'))
+    armature = bpy.data.armatures.new('CC0 exercise skeleton')
+    rig = bpy.data.objects.new('CC0 exercise rig', armature)
+    bpy.context.collection.objects.link(rig)
+    bpy.context.view_layer.objects.active = rig
+    rig.select_set(True)
+    bpy.ops.object.mode_set(mode='EDIT')
+    for name, parent, landmark in rig_points:
+        bone = armature.edit_bones.new(name)
+        bone.head = anchors[landmark]
+        child = next((point for point in rig_points if point[1] == name), None)
+        bone.tail = anchors[child[2]] if child else bone.head + Vector((0, 0, 0.06))
+        if parent:
+            bone.parent = armature.edit_bones[parent]
+    bpy.ops.object.mode_set(mode='OBJECT')
+    for side, suffix in [('r', '-1'), ('l', '1')]:
+        along = (anchors[f'joint-{side}-finger-3-1'] - anchors[f'joint-{side}-hand']).normalized()
+        across = (anchors[f'joint-{side}-finger-2-1'] - anchors[f'joint-{side}-finger-5-1']).normalized()
+        normal = across.cross(along).normalized()
+        if side == 'r':
+            normal.negate()
+        armature.bones[f'wrist{suffix}']['palmNormal'] = [normal.x, normal.z, -normal.y]
+    bpy.ops.object.parent_set(type='ARMATURE_AUTO')
+    for vertex in body.data.vertices:
+        assert sum(group.weight for group in vertex.groups) > 0, f'Unweighted body vertex: {vertex.index}'
+    bpy.context.view_layer.objects.active = body
     subdivision = body.modifiers.new('Surface refinement', 'SUBSURF')
     subdivision.levels = 1
     bpy.ops.object.modifier_apply(modifier=subdivision.name)
@@ -172,7 +212,12 @@ def export_model(options, revision, records, lines, vertices):
             eye = bpy.context.object
             eye.name = f'{name}-{side}'
             eye.scale = radii
+            eye.parent = rig
             eye.data.materials.append(materials[name])
+            head_group = eye.vertex_groups.new(name='head')
+            head_group.add(list(range(len(eye.data.vertices))), 1, 'REPLACE')
+            modifier = eye.modifiers.new('Head attachment', 'ARMATURE')
+            modifier.object = rig
             for face in eye.data.polygons:
                 face.use_smooth = True
     bpy.ops.export_scene.gltf(filepath=str(destination), export_format='GLB', export_extras=True, export_animations=False, export_cameras=False, export_lights=False, export_copyright='MakeHuman Community core assets: CC0-1.0')
@@ -181,7 +226,7 @@ def export_model(options, revision, records, lines, vertices):
         'license': 'CC0-1.0', 'licenseUrl': f'https://github.com/{REPOSITORY}/blob/{revision}/LICENSE.ASSETS.md',
         'targets': TARGETS, 'sourceFiles': records, 'sha256': hashlib.sha256(destination.read_bytes()).hexdigest(),
         'bytes': destination.stat().st_size, 'heightMeters': 1.72, 'regions': counts,
-        'modifications': ['Adult muscular morph blend', 'Helpers removed', 'One subdivision level', 'Approximate surface muscle regions', 'Compression-short and scalp materials', 'Generated eye surfaces'],
+        'modifications': ['Adult muscular morph blend', 'Helpers removed', 'Landmark-fitted skeleton with automatic skin weights', 'One subdivision level', 'Approximate surface muscle regions', 'Compression-short and scalp materials', 'Generated eye surfaces'],
         'limitations': ['Not anatomical muscle meshes', 'Not a validated exercise rig'],
     }
     destination.with_suffix('.json').write_text(json.dumps(manifest, indent=2) + '\n')

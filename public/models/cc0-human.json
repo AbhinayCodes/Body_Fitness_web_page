@@ -40,8 +40,8 @@
       "sha256": "5873f11edc96fde72a79ec35fa1d292a6a1a594b5eadfd82d59faf48834561de"
     }
   ],
-  "sha256": "384fb612e9a84641d9acad126968ecbb78b7992b591c823c70210e40997ea15f",
-  "bytes": 2598688,
+  "sha256": "28b84ad32c3f4bfc42eba7ce1ab525e3ad15ff2cbaa1c4fc9cc9112622d604ec",
+  "bytes": 3807756,
   "heightMeters": 1.72,
   "regions": {
     "neutral": 37212,
@@ -61,6 +61,7 @@
   "modifications": [
     "Adult muscular morph blend",
     "Helpers removed",
+    "Landmark-fitted skeleton with automatic skin weights",
     "One subdivision level",
     "Approximate surface muscle regions",
     "Compression-short and scalp materials",
