@@ -1,25 +1,30 @@
-import { ExerciseDifficulty, PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
+import { exerciseConstraints, exerciseLibrary, exerciseRelations } from '../src/workout/exercise-library';
 
-const exercises: Array<{ slug: string; name: string; muscleGroups: string[]; movementPattern: string; equipment: string[]; locations: string[]; difficulty: ExerciseDifficulty; suitableGoals: string[]; instructions: string[]; estimatedMinutes: number }> = [
-  { slug: 'bodyweight-squat', name: 'Bodyweight Squat', muscleGroups: ['quads', 'glutes'], movementPattern: 'squat', equipment: [], locations: ['HOME', 'GYM', 'OUTDOOR', 'MIXED'], difficulty: 'BEGINNER', suitableGoals: ['Build muscle', 'Lose fat', 'Maintain fitness'], instructions: ['Stand with feet about shoulder width.', 'Sit hips down and keep your chest tall.', 'Drive through the whole foot to stand.'], estimatedMinutes: 7 },
-  { slug: 'push-up', name: 'Push-up', muscleGroups: ['chest', 'triceps'], movementPattern: 'horizontal-push', equipment: [], locations: ['HOME', 'GYM', 'OUTDOOR', 'MIXED'], difficulty: 'BEGINNER', suitableGoals: ['Build muscle', 'Lose fat', 'Maintain fitness'], instructions: ['Keep a straight line from head to heel.', 'Lower chest with elbows at a comfortable angle.', 'Press the floor away.'], estimatedMinutes: 7 },
-  { slug: 'split-squat', name: 'Split Squat', muscleGroups: ['quads', 'glutes'], movementPattern: 'single-leg', equipment: [], locations: ['HOME', 'GYM', 'OUTDOOR', 'MIXED'], difficulty: 'BEGINNER', suitableGoals: ['Build muscle', 'Lose fat', 'Maintain fitness'], instructions: ['Take a comfortable staggered stance.', 'Lower the back knee under control.', 'Push through the front foot to stand.'], estimatedMinutes: 7 },
-  { slug: 'glute-bridge', name: 'Glute Bridge', muscleGroups: ['glutes', 'hamstrings'], movementPattern: 'hip-hinge', equipment: [], locations: ['HOME', 'GYM', 'OUTDOOR', 'MIXED'], difficulty: 'BEGINNER', suitableGoals: ['Build muscle', 'Maintain fitness'], instructions: ['Lie with knees bent and feet grounded.', 'Squeeze glutes to lift hips.', 'Lower without arching your lower back.'], estimatedMinutes: 6 },
-  { slug: 'plank', name: 'Plank', muscleGroups: ['core'], movementPattern: 'core', equipment: [], locations: ['HOME', 'GYM', 'OUTDOOR', 'MIXED'], difficulty: 'BEGINNER', suitableGoals: ['Build muscle', 'Lose fat', 'Maintain fitness'], instructions: ['Set elbows below shoulders.', 'Keep ribs stacked over hips.', 'Breathe steadily while holding position.'], estimatedMinutes: 5 },
-  { slug: 'dumbbell-goblet-squat', name: 'Dumbbell Goblet Squat', muscleGroups: ['quads', 'glutes'], movementPattern: 'squat', equipment: ['Dumbbells'], locations: ['HOME', 'GYM', 'MIXED'], difficulty: 'BEGINNER', suitableGoals: ['Build muscle', 'Lose fat', 'Maintain fitness'], instructions: ['Hold one dumbbell close to your chest.', 'Squat between your hips with control.', 'Stand tall through your mid-foot.'], estimatedMinutes: 8 },
-  { slug: 'dumbbell-floor-press', name: 'Dumbbell Floor Press', muscleGroups: ['chest', 'triceps'], movementPattern: 'horizontal-push', equipment: ['Dumbbells'], locations: ['HOME', 'GYM', 'MIXED'], difficulty: 'BEGINNER', suitableGoals: ['Build muscle', 'Maintain fitness'], instructions: ['Lie on the floor with dumbbells over chest.', 'Lower until upper arms touch the floor.', 'Press up with wrists stacked over elbows.'], estimatedMinutes: 8 },
-  { slug: 'dumbbell-row', name: 'Dumbbell Row', muscleGroups: ['back', 'biceps'], movementPattern: 'horizontal-pull', equipment: ['Dumbbells'], locations: ['HOME', 'GYM', 'MIXED'], difficulty: 'BEGINNER', suitableGoals: ['Build muscle', 'Maintain fitness'], instructions: ['Brace one hand on a stable surface.', 'Pull elbow toward your hip.', 'Lower the weight under control.'], estimatedMinutes: 8 },
-  { slug: 'dumbbell-rdl', name: 'Dumbbell Romanian Deadlift', muscleGroups: ['hamstrings', 'glutes'], movementPattern: 'hip-hinge', equipment: ['Dumbbells'], locations: ['HOME', 'GYM', 'MIXED'], difficulty: 'INTERMEDIATE', suitableGoals: ['Build muscle', 'Maintain fitness'], instructions: ['Hold dumbbells close to legs.', 'Push hips back with a neutral spine.', 'Stand by squeezing glutes.'], estimatedMinutes: 8 },
-  { slug: 'dumbbell-shoulder-press', name: 'Dumbbell Shoulder Press', muscleGroups: ['shoulders', 'triceps'], movementPattern: 'vertical-push', equipment: ['Dumbbells'], locations: ['HOME', 'GYM', 'MIXED'], difficulty: 'INTERMEDIATE', suitableGoals: ['Build muscle', 'Maintain fitness'], instructions: ['Start weights at shoulder height.', 'Press overhead without leaning back.', 'Lower slowly to the start.'], estimatedMinutes: 7 },
-  { slug: 'barbell-back-squat', name: 'Barbell Back Squat', muscleGroups: ['quads', 'glutes'], movementPattern: 'squat', equipment: ['Barbell'], locations: ['GYM'], difficulty: 'INTERMEDIATE', suitableGoals: ['Build muscle', 'Maintain fitness'], instructions: ['Set the bar securely across upper back.', 'Brace before sitting between your hips.', 'Stand with control and a neutral spine.'], estimatedMinutes: 9 },
-  { slug: 'barbell-bench-press', name: 'Barbell Bench Press', muscleGroups: ['chest', 'triceps'], movementPattern: 'horizontal-push', equipment: ['Barbell'], locations: ['GYM'], difficulty: 'INTERMEDIATE', suitableGoals: ['Build muscle', 'Maintain fitness'], instructions: ['Set shoulders firmly on the bench.', 'Lower the bar with control.', 'Press to locked-out elbows without bouncing.'], estimatedMinutes: 9 },
-  { slug: 'lat-pulldown', name: 'Lat Pulldown', muscleGroups: ['back', 'biceps'], movementPattern: 'vertical-pull', equipment: ['Machines'], locations: ['GYM'], difficulty: 'BEGINNER', suitableGoals: ['Build muscle', 'Maintain fitness'], instructions: ['Keep chest tall and grip comfortably.', 'Pull elbows toward your ribs.', 'Control the return overhead.'], estimatedMinutes: 8 },
-  { slug: 'leg-press', name: 'Leg Press', muscleGroups: ['quads', 'glutes'], movementPattern: 'squat', equipment: ['Machines'], locations: ['GYM'], difficulty: 'BEGINNER', suitableGoals: ['Build muscle', 'Maintain fitness'], instructions: ['Set feet securely on the platform.', 'Lower only as far as you can control.', 'Press without locking knees forcefully.'], estimatedMinutes: 8 },
-  { slug: 'band-row', name: 'Resistance Band Row', muscleGroups: ['back', 'biceps'], movementPattern: 'horizontal-pull', equipment: ['Resistance bands'], locations: ['HOME', 'GYM', 'OUTDOOR', 'MIXED'], difficulty: 'BEGINNER', suitableGoals: ['Build muscle', 'Lose fat', 'Maintain fitness'], instructions: ['Anchor the band securely.', 'Pull elbows toward your ribs.', 'Return slowly without shrugging.'], estimatedMinutes: 7 },
-  { slug: 'band-chest-press', name: 'Resistance Band Chest Press', muscleGroups: ['chest', 'triceps'], movementPattern: 'horizontal-push', equipment: ['Resistance bands'], locations: ['HOME', 'GYM', 'OUTDOOR', 'MIXED'], difficulty: 'BEGINNER', suitableGoals: ['Build muscle', 'Lose fat', 'Maintain fitness'], instructions: ['Anchor band behind your body securely.', 'Press hands forward evenly.', 'Return with a controlled stretch.'], estimatedMinutes: 7 },
-  { slug: 'brisk-walk-interval', name: 'Brisk Walk Intervals', muscleGroups: ['conditioning'], movementPattern: 'conditioning', equipment: [], locations: ['OUTDOOR', 'HOME', 'GYM', 'MIXED'], difficulty: 'BEGINNER', suitableGoals: ['Lose fat', 'Maintain fitness'], instructions: ['Walk easy for two minutes.', 'Walk briskly for one minute.', 'Repeat at a pace that allows controlled breathing.'], estimatedMinutes: 8 },
-];
-
+// Persistence only — the catalog data lives in src/workout/exercise-library.ts so it can be shared
+// with the workout engine and its validation tests.
 export async function seedExerciseCatalog(prisma: PrismaClient): Promise<void> {
-  for (const exercise of exercises) await prisma.exercise.upsert({ where: { slug: exercise.slug }, update: exercise, create: exercise });
+  for (const exercise of exerciseLibrary) await prisma.exercise.upsert({ where: { slug: exercise.slug }, update: exercise, create: exercise });
+
+  const slugs = exerciseLibrary.map((exercise) => exercise.slug);
+  const records = await prisma.exercise.findMany({ where: { slug: { in: slugs } }, select: { id: true, slug: true } });
+  const idBySlug = new Map(records.map((record) => [record.slug, record.id]));
+  const exerciseIds = [...idBySlug.values()];
+
+  // Rebuild relationships and constraints idempotently for the seeded set.
+  await prisma.exerciseRelation.deleteMany({ where: { fromExerciseId: { in: exerciseIds } } });
+  await prisma.exerciseConstraint.deleteMany({ where: { exerciseId: { in: exerciseIds } } });
+
+  const relationData = exerciseRelations.flatMap((relation) => {
+    const fromExerciseId = idBySlug.get(relation.from);
+    const toExerciseId = idBySlug.get(relation.to);
+    return fromExerciseId && toExerciseId ? [{ fromExerciseId, toExerciseId, relationType: relation.relationType, note: relation.note ?? null }] : [];
+  });
+  if (relationData.length) await prisma.exerciseRelation.createMany({ data: relationData, skipDuplicates: true });
+
+  const constraintData = exerciseConstraints.flatMap((constraint) => {
+    const exerciseId = idBySlug.get(constraint.slug);
+    return exerciseId ? [{ exerciseId, constraintType: constraint.constraintType, area: constraint.area ?? null, severity: constraint.severity, note: constraint.note ?? null }] : [];
+  });
+  if (constraintData.length) await prisma.exerciseConstraint.createMany({ data: constraintData });
 }

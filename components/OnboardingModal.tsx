@@ -1,50 +1,58 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { Dumbbell, Moon, Sunrise, type LucideIcon } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { Clock, Dumbbell, Moon, Sunrise, type LucideIcon } from 'lucide-react';
 import { ApiError, clearDemoOnboarding, fitnessApi, getDemoOnboarding } from '@/lib/api';
 import type { OnboardingData } from '@/types/fitness';
+import { ONBOARDING_SCHEMA_VERSION, SKIP, questionnaire } from '@/lib/onboarding/questionnaire';
+import {
+  computeProgress,
+  getVisibleQuestions,
+  getVisibleSections,
+  isAnswered,
+  mapResponsesToLegacy,
+  needsMedicalAttention,
+  validateSection,
+} from '@/lib/onboarding/engine';
+import type { AnswerValue, OnboardingResponses, Question } from '@/lib/onboarding/types';
 
-const steps = ['Body', 'Goals', 'Training', 'Food', 'Routine', 'Review'];
-const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-const defaults: OnboardingData = { trainingDays: [], equipment: [], foodPreferences: [], foodRestrictions: [], secondaryGoals: [], currentStep: 1, completed: false };
-
-type ToggleKey = 'trainingDays' | 'equipment' | 'foodPreferences' | 'secondaryGoals';
+const TIME_ICONS: Record<string, LucideIcon> = { wakeTime: Sunrise, preferredGymTime: Dumbbell, sleepTime: Moon };
 
 export function OnboardingModal({ onClose, onCompleted, required = false }: { onClose: () => void; onCompleted?: (data: OnboardingData) => void; required?: boolean }) {
-  const [data, setData] = useState<OnboardingData>(defaults);
-  const [step, setStep] = useState(1);
+  const [responses, setResponses] = useState<OnboardingResponses>({});
+  const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fitnessApi.getOnboarding().then((saved) => {
-      const draft = !saved.age ? getDemoOnboarding<OnboardingData>() : null;
+      const draft = !saved.age && !saved.responses ? getDemoOnboarding<OnboardingData>() : null;
       const restored = draft ?? saved;
-      setData({ ...defaults, ...restored });
-      setStep(restored.completed ? 1 : restored.currentStep ?? 1);
+      setResponses(restored.responses ?? {});
+      const resume = restored.completed ? 0 : Math.max(0, (restored.currentStep ?? 1) - 1);
+      setStep(Math.min(resume, questionnaire.sections.length));
     }).catch(() => setError('Unable to load your saved setup.')).finally(() => setLoading(false));
   }, []);
 
-  const update = (changes: Partial<OnboardingData>) => setData((current) => ({ ...current, ...changes }));
-  const toggle = (key: ToggleKey, value: string) => update({
-    [key]: data[key]?.includes(value as never) ? data[key]?.filter((item) => item !== value) : [...(data[key] ?? []), value],
+  const sections = useMemo(() => getVisibleSections(responses), [responses]);
+  const reviewStep = sections.length;
+  const onReview = step >= reviewStep;
+  const section = sections[step];
+  const progress = computeProgress(responses);
+
+  const setResponse = (id: string, value: AnswerValue) => setResponses((current) => ({ ...current, [id]: value }));
+  const toggleMulti = (id: string, value: string) => setResponses((current) => {
+    const existing = Array.isArray(current[id]) ? (current[id] as string[]) : [];
+    return { ...current, [id]: existing.includes(value) ? existing.filter((item) => item !== value) : [...existing, value] };
   });
-  const validationMessage = () => {
-    if (step === 1 && (!data.age || data.age < 13 || data.age > 100 || !data.sex || !data.heightCm || data.heightCm < 100 || data.heightCm > 250 || !data.weightKg || data.weightKg < 25 || data.weightKg > 350)) return 'Enter a valid age, sex, height, and weight.';
-    if (step === 2 && (!data.primaryGoal || !data.trainingExperience)) return 'Choose a primary goal and your training experience.';
-    if (step === 3 && (!data.trainingDays?.length || !data.workoutDurationMinutes || !data.trainingLocation)) return 'Choose at least one day, a duration, and training location.';
-    if (step === 4 && !data.dietType) return 'Choose your diet preference.';
-    if (step === 5 && (!data.wakeTime || !data.workSchedule || !data.preferredGymTime || !data.sleepTime)) return 'Complete each part of your daily routine.';
-    return null;
-  };
-  const save = async (nextStep: number, completed = false) => {
+
+  const persist = async (nextStep: number, completed = false): Promise<boolean> => {
     setSaving(true);
     setError(null);
     try {
-      const onboarding = { ...data, currentStep: nextStep, completed };
-      await fitnessApi.saveOnboarding(onboarding);
+      const payload: OnboardingData = { ...mapResponsesToLegacy(responses), responses, schemaVersion: ONBOARDING_SCHEMA_VERSION, currentStep: nextStep + 1, completed };
+      await fitnessApi.saveOnboarding(payload);
       clearDemoOnboarding();
       setStep(nextStep);
       return true;
@@ -55,38 +63,113 @@ export function OnboardingModal({ onClose, onCompleted, required = false }: { on
       setSaving(false);
     }
   };
+
   const next = async () => {
-    const message = validationMessage();
+    const message = section ? validateSection(section, responses) : null;
     if (message) return setError(message);
-    await save(step + 1);
+    await persist(step + 1);
   };
-  const back = async () => { if (step > 1) await save(step - 1); };
+  const back = async () => { if (step > 0) await persist(step - 1); };
   const finish = async () => {
-    if (await save(6, true)) {
-      onCompleted?.({ ...data, completed: true });
+    for (const visible of sections) {
+      const message = validateSection(visible, responses);
+      if (message) { setError(message); return; }
+    }
+    if (await persist(reviewStep, true)) {
+      onCompleted?.({ ...mapResponsesToLegacy(responses), responses, completed: true });
       onClose();
     }
   };
 
   if (loading) return <div className="modal-backdrop"><div className="modal">Loading your setup...</div></div>;
 
+  const age = typeof responses.age === 'number' ? responses.age : undefined;
+
   return <div className="modal-backdrop"><div className="modal onboarding-modal">
-    <div className="modal-head"><div><span className="eyebrow">Personal setup: Step {step} of {steps.length}</span><h2>{step === 6 ? 'Review your details.' : 'Build around your life.'}</h2></div>{!required && <button className="close" aria-label="Close onboarding" onClick={onClose}>x</button>}</div>
-    <div className="steps">{steps.map((label, index) => <i className={index < step ? 'active' : ''} key={label} />)}</div>
+    <div className="modal-head">
+      <div>
+        <span className="eyebrow">Personal setup · Step {Math.min(step + 1, reviewStep + 1)} of {reviewStep + 1}</span>
+        <h2>{onReview ? 'Review your profile.' : section?.title}</h2>
+        {!onReview && section?.subtitle && <p className="muted">{section.subtitle}</p>}
+      </div>
+      {!required && <button className="close" aria-label="Close onboarding" onClick={onClose}>x</button>}
+    </div>
+    <div className="steps" aria-hidden="true">{sections.map((item, index) => <i className={index < step ? 'active' : ''} key={item.id} />)}<i className={onReview ? 'active' : ''} /></div>
+    <div className="api-status" role="status">Profile completeness: {Math.round(progress * 100)}%</div>
     {error && <div className="api-status error" role="alert">{error}</div>}
-    {step === 1 && <><div className="form-grid"><NumberField label="Age" value={data.age} onChange={(age) => update({ age })} /><Choice label="Sex" values={['FEMALE', 'MALE', 'NON_BINARY', 'PREFER_NOT_TO_SAY']} selected={data.sex} onSelect={(sex) => update({ sex: sex as OnboardingData['sex'] })} /><NumberField label="Height (cm)" value={data.heightCm} onChange={(heightCm) => update({ heightCm })} /><NumberField label="Weight (kg)" value={data.weightKg} onChange={(weightKg) => update({ weightKg })} /></div>{data.age !== undefined && data.age < 18 && <div className="api-status" role="status">Your plan will focus on safe, age-appropriate movement and habits. It will not provide calorie targets, cutting guidance, or bodybuilding claims.</div>}</>}
-    {step === 2 && <><Choice label="Primary fitness goal" values={['Build muscle', 'Lose fat', 'Maintain fitness']} selected={data.primaryGoal} onSelect={(primaryGoal) => update({ primaryGoal })} /><Choice label="Secondary goals (optional)" values={['Improve strength', 'Improve endurance', 'Improve mobility', 'Build consistency']} selected={data.secondaryGoals} onSelect={(goal) => toggle('secondaryGoals', goal)} multi /><Choice label="Training experience" values={['BEGINNER', 'INTERMEDIATE', 'ADVANCED']} selected={data.trainingExperience} onSelect={(trainingExperience) => update({ trainingExperience: trainingExperience as OnboardingData['trainingExperience'] })} /></>}
-    {step === 3 && <><Choice label="Available training days" values={days} selected={data.trainingDays} onSelect={(day) => toggle('trainingDays', day)} multi /><Choice label="Workout duration" values={['30', '45', '60', '90']} selected={data.workoutDurationMinutes?.toString()} onSelect={(value) => update({ workoutDurationMinutes: Number(value) })} /><Choice label="Training location" values={['HOME', 'GYM', 'OUTDOOR', 'MIXED']} selected={data.trainingLocation} onSelect={(trainingLocation) => update({ trainingLocation: trainingLocation as OnboardingData['trainingLocation'] })} /><Choice label="Available equipment" values={['Dumbbells', 'Barbell', 'Resistance bands', 'Machines', 'Yoga mat', 'None']} selected={data.equipment} onSelect={(equipment) => toggle('equipment', equipment)} multi /></>}
-    {step === 4 && <><Choice label="Diet preference" values={['Vegetarian', 'Non-vegetarian', 'Vegan', 'No preference']} selected={data.dietType} onSelect={(dietType) => update({ dietType })} /><Choice label="Food preferences" values={['High protein', 'Home cooked', 'Quick meals', 'Budget friendly']} selected={data.foodPreferences} onSelect={(preference) => toggle('foodPreferences', preference)} multi /><TextField label="Restrictions or allergies" value={data.foodRestrictions?.join(', ')} placeholder="For example: peanuts, lactose" onChange={(value) => update({ foodRestrictions: value.split(',').map((item) => item.trim()).filter(Boolean) })} /></>}
-    {step === 5 && <div className="routine-fields"><div className="routine-times"><TimeField label="Wake time" icon={Sunrise} value={data.wakeTime} onChange={(wakeTime) => update({ wakeTime })} /><TimeField label="Preferred workout time" icon={Dumbbell} value={data.preferredGymTime} onChange={(preferredGymTime) => update({ preferredGymTime })} /><TimeField label="Sleep time" icon={Moon} value={data.sleepTime} onChange={(sleepTime) => update({ sleepTime })} /></div><Choice label="Work or college schedule" values={['Morning schedule', 'Afternoon schedule', 'Evening schedule', 'Rotating shifts', 'Flexible']} selected={data.workSchedule} onSelect={(workSchedule) => update({ workSchedule })} /><Choice label="Daily activity outside training (optional)" values={['SEDENTARY', 'LIGHTLY_ACTIVE', 'MODERATELY_ACTIVE', 'VERY_ACTIVE']} selected={data.dailyActivity} onSelect={(dailyActivity) => update({ dailyActivity: dailyActivity as OnboardingData['dailyActivity'] })} /></div>}
-    {step === 6 && <><Review data={data} />{(data.age ?? 18) < 18 && <div className="api-status" role="status">Your profile is set up for age-appropriate movement and habit support only. Nutrition targets and aggressive body-composition guidance are not included.</div>}</>}
-    <div className="modal-footer">{step > 1 ? <button className="outline" disabled={saving} onClick={() => void back()}>Back</button> : <span />}{step === 6 ? <button className="primary" disabled={saving} onClick={() => void finish()}>{saving ? 'Saving...' : 'Save my profile'}</button> : <button className="primary" disabled={saving} onClick={() => void next()}>{saving ? 'Saving...' : 'Next'}</button>}</div>
+
+    {!onReview && section && <div className="onboarding-questions">
+      {getVisibleQuestions(section, responses).map((question) => (
+        <QuestionField key={question.id} question={question} value={responses[question.id]} onSet={(value) => setResponse(question.id, value)} onToggle={(value) => toggleMulti(question.id, value)} />
+      ))}
+      {section.id === 'core' && age !== undefined && age < 18 && <div className="api-status" role="status">Your plan will focus on safe, age-appropriate movement and habits. It will not provide calorie targets, cutting guidance, or bodybuilding claims.</div>}
+    </div>}
+
+    {onReview && <>
+      <Review responses={responses} />
+      {needsMedicalAttention(responses) && <div className="api-status" role="status">Based on your health answers, some automated recommendations may not be appropriate. Please review your plan with a qualified healthcare professional before following it.</div>}
+      {age !== undefined && age < 18 && <div className="api-status" role="status">Your profile is set up for age-appropriate movement and habit support only. Nutrition targets and aggressive body-composition guidance are not included.</div>}
+    </>}
+
+    <div className="modal-footer">
+      {step > 0 ? <button className="outline" disabled={saving} onClick={() => void back()}>Back</button> : <span />}
+      {onReview
+        ? <button className="primary" disabled={saving} onClick={() => void finish()}>{saving ? 'Saving...' : 'Save my profile'}</button>
+        : <button className="primary" disabled={saving} onClick={() => void next()}>{saving ? 'Saving...' : 'Next'}</button>}
+    </div>
   </div></div>;
 }
 
-function NumberField({ label, value, onChange }: { label: string; value?: number; onChange: (value: number | undefined) => void }) { return <div className="field"><label>{label}</label><input type="number" value={value ?? ''} onChange={(event) => onChange(event.target.value ? Number(event.target.value) : undefined)} /></div>; }
-function TextField({ label, value, placeholder, onChange }: { label: string; value?: string; placeholder?: string; onChange: (value: string) => void }) { return <div className="field full"><label>{label}</label><input value={value ?? ''} placeholder={placeholder} onChange={(event) => onChange(event.target.value)} /></div>; }
-function TimeField({ label, icon: Icon, value, onChange }: { label: string; icon: LucideIcon; value?: string; onChange: (value: string) => void }) {
+function QuestionField({ question, value, onSet, onToggle }: { question: Question; value: AnswerValue | undefined; onSet: (value: AnswerValue) => void; onToggle: (value: string) => void }) {
+  const label = question.unit ? `${question.label} (${question.unit})` : question.label;
+  const skipped = value === SKIP;
+
+  if (question.kind === 'number') {
+    return <div className="field full">
+      <label>{label}</label>
+      {question.help && <p className="muted">{question.help}</p>}
+      <input type="number" disabled={skipped} value={typeof value === 'number' ? value : ''} placeholder={question.placeholder} onChange={(event) => onSet(event.target.value ? Number(event.target.value) : null)} />
+      {question.allowSkip && <SkipChipRow question={question} skipped={skipped} onSet={onSet} />}
+    </div>;
+  }
+  if (question.kind === 'text') {
+    return <div className="field full">
+      <label>{label}</label>
+      {question.help && <p className="muted">{question.help}</p>}
+      <input disabled={skipped} value={typeof value === 'string' && value !== SKIP ? value : ''} placeholder={question.placeholder} onChange={(event) => onSet(event.target.value)} />
+      {question.allowSkip && <SkipChipRow question={question} skipped={skipped} onSet={onSet} />}
+    </div>;
+  }
+  if (question.kind === 'time') {
+    return <div className="field full">
+      <label>{label}</label>
+      <TimeField icon={TIME_ICONS[question.id] ?? Clock} value={typeof value === 'string' ? value : undefined} onChange={(time) => onSet(time)} ariaLabel={question.label} />
+    </div>;
+  }
+  const selected = question.kind === 'multi' ? (Array.isArray(value) ? value : []) : [value];
+  return <div className="field full">
+    <label>{label}</label>
+    {question.help && <p className="muted">{question.help}</p>}
+    <div className="choices">
+      {question.options?.map((option) => (
+        <button type="button" key={option.value} className={`choice ${selected.includes(option.value) ? 'selected' : ''}`} title={option.description}
+          onClick={() => question.kind === 'multi' ? onToggle(option.value) : onSet(option.value)}>
+          {option.label}
+        </button>
+      ))}
+      {question.allowSkip && <SkipChip question={question} skipped={skipped} onSet={onSet} />}
+    </div>
+  </div>;
+}
+
+function SkipChipRow({ question, skipped, onSet }: { question: Question; skipped: boolean; onSet: (value: AnswerValue) => void }) {
+  return <div className="choices" style={{ marginTop: 8 }}><SkipChip question={question} skipped={skipped} onSet={onSet} /></div>;
+}
+function SkipChip({ question, skipped, onSet }: { question: Question; skipped: boolean; onSet: (value: AnswerValue) => void }) {
+  return <button type="button" className={`choice ${skipped ? 'selected' : ''}`} onClick={() => onSet(skipped ? null : SKIP)}>{question.skipLabel ?? 'Skip'}</button>;
+}
+
+function TimeField({ icon: Icon, value, onChange, ariaLabel }: { icon: LucideIcon; value?: string; onChange: (value: string) => void; ariaLabel: string }) {
   const [draftMinute, setDraftMinute] = useState('00');
   const [draftPeriod, setDraftPeriod] = useState('AM');
   const hour = value ? String(Number(value.slice(0, 2)) % 12 || 12).padStart(2, '0') : '';
@@ -97,13 +180,32 @@ function TimeField({ label, icon: Icon, value, onChange }: { label: string; icon
     setDraftPeriod(nextPeriod);
     if (nextHour) onChange(`${String(Number(nextHour) % 12 + (nextPeriod === 'PM' ? 12 : 0)).padStart(2, '0')}:${nextMinute}`);
   };
-  return <div className="routine-time" role="group" aria-label={label}>
-    <div className="routine-time-label"><span className="routine-time-icon"><Icon size={19} aria-hidden="true" /></span><span>{label}</span></div>
+  return <div className="routine-time" role="group" aria-label={ariaLabel}>
+    <div className="routine-time-label"><span className="routine-time-icon"><Icon size={19} aria-hidden="true" /></span></div>
     <div className="time-controls">
-      <div className="time-digits"><select aria-label={`${label} hour`} value={hour} onChange={(event) => change(event.target.value, minute, period)}><option value="" disabled>--</option>{Array.from({ length: 12 }, (_, index) => String(index + 1).padStart(2, '0')).map((item) => <option key={item} value={item}>{item}</option>)}</select><span aria-hidden="true">:</span><select aria-label={`${label} minute`} value={minute} onChange={(event) => change(hour, event.target.value, period)}>{Array.from({ length: 60 }, (_, index) => String(index).padStart(2, '0')).map((item) => <option key={item} value={item}>{item}</option>)}</select></div>
-      <div className="time-period" role="group" aria-label={`${label} period`}>{['AM', 'PM'].map((item) => <button key={item} type="button" aria-pressed={period === item} onClick={() => change(hour, minute, item)}>{item}</button>)}</div>
+      <div className="time-digits"><select aria-label={`${ariaLabel} hour`} value={hour} onChange={(event) => change(event.target.value, minute, period)}><option value="" disabled>--</option>{Array.from({ length: 12 }, (_, index) => String(index + 1).padStart(2, '0')).map((item) => <option key={item} value={item}>{item}</option>)}</select><span aria-hidden="true">:</span><select aria-label={`${ariaLabel} minute`} value={minute} onChange={(event) => change(hour, event.target.value, period)}>{Array.from({ length: 60 }, (_, index) => String(index).padStart(2, '0')).map((item) => <option key={item} value={item}>{item}</option>)}</select></div>
+      <div className="time-period" role="group" aria-label={`${ariaLabel} period`}>{['AM', 'PM'].map((item) => <button key={item} type="button" aria-pressed={period === item} onClick={() => change(hour, minute, item)}>{item}</button>)}</div>
     </div>
   </div>;
 }
-function Choice({ label, values, selected, onSelect, multi = false }: { label: string; values: string[]; selected?: string | string[]; onSelect: (value: string) => void; multi?: boolean }) { const selectedValues = multi ? (selected as string[] | undefined) ?? [] : [selected]; return <div className="field" style={{ marginTop: 18 }}><label>{label}</label><div className="choices">{values.map((value) => <button type="button" className={`choice ${selectedValues.includes(value) ? 'selected' : ''}`} key={value} onClick={() => onSelect(value)}>{value.replaceAll('_', ' ')}</button>)}</div></div>; }
-function Review({ data }: { data: OnboardingData }) { const items = [['Body', `${data.age} | ${data.sex?.replaceAll('_', ' ')} | ${data.heightCm} cm | ${data.weightKg} kg`], ['Goals', [data.primaryGoal, ...(data.secondaryGoals ?? [])].filter(Boolean).join(' | ')], ['Training', `${data.trainingDays?.join(', ')} | ${data.workoutDurationMinutes} min | ${data.trainingLocation?.replaceAll('_', ' ')}`], ['Equipment', data.equipment?.join(', ') || 'Not specified'], ['Food', [data.dietType, ...(data.foodPreferences ?? [])].filter(Boolean).join(' | ')], ['Restrictions', data.foodRestrictions?.join(', ') || 'None'], ['Routine', `${data.wakeTime} wake | ${data.workSchedule} | ${data.preferredGymTime} workout | ${data.sleepTime} sleep`], ['Daily activity', data.dailyActivity?.replaceAll('_', ' ') || 'Estimated from training']]; return <div className="schedule-list">{items.map(([label, value]) => <div className="schedule-item" key={label}><span>{label}</span><b>{value}</b></div>)}</div>; }
+
+function formatValue(question: Question, value: AnswerValue): string {
+  const labelFor = (raw: string) => question.options?.find((option) => option.value === raw)?.label ?? raw;
+  if (Array.isArray(value)) return value.map(labelFor).join(', ');
+  if (typeof value === 'string') return question.options ? labelFor(value) : value;
+  return String(value);
+}
+
+function Review({ responses }: { responses: OnboardingResponses }) {
+  const sections = getVisibleSections(responses);
+  return <div className="onboarding-review">
+    {sections.map((section) => {
+      const answered = getVisibleQuestions(section, responses).filter((question) => isAnswered(responses[question.id]));
+      if (!answered.length) return null;
+      return <div className="schedule-list" key={section.id}>
+        <div className="nav-label">{section.title}</div>
+        {answered.map((question) => <div className="schedule-item" key={question.id}><span>{question.label}</span><b>{formatValue(question, responses[question.id]!)}</b></div>)}
+      </div>;
+    })}
+  </div>;
+}

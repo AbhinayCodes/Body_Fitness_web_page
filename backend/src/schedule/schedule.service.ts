@@ -16,9 +16,10 @@ export class ScheduleService {
     const nutrition = await this.nutrition.getTargets(userId);
     if (nutrition.status !== 'READY' || !nutrition.targets) return nutrition;
     const workoutPlan = await this.workouts.getPlan(userId);
+    const persistedPlan = 'id' in workoutPlan ? workoutPlan : null;
     const weekday = new Intl.DateTimeFormat('en-US', { weekday: 'long', timeZone: 'UTC' }).format(new Date(`${date}T00:00:00.000Z`));
-    const workoutPlanDay = workoutPlan.days.find((day) => day.weekday === weekday);
-    const sourceFingerprint = createHash('sha256').update(JSON.stringify({ date, onboarding: onboarding.updatedAt, nutrition: nutrition.targets, workoutPlan: workoutPlan.id })).digest('hex');
+    const workoutPlanDay = persistedPlan?.days.find((day) => day.weekday === weekday);
+    const sourceFingerprint = createHash('sha256').update(JSON.stringify({ date, onboarding: onboarding.updatedAt, nutrition: nutrition.targets, workoutPlan: persistedPlan?.id ?? 'medical-clearance' })).digest('hex');
     const existing = await this.prisma.dailySchedule.findUnique({ where: { userId_date_sourceFingerprint: { userId, date: new Date(`${date}T00:00:00.000Z`), sourceFingerprint } }, include: scheduleInclude });
     if (existing) return existing;
     const catalog = await this.recipes.findMany({});

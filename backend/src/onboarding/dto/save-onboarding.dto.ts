@@ -1,4 +1,4 @@
-import { IsArray, IsBoolean, IsIn, IsInt, IsOptional, IsString, Matches, Max, Min, ValidateBy, ValidateIf } from 'class-validator';
+import { IsArray, IsBoolean, IsIn, IsInt, IsObject, IsOptional, IsString, Matches, Max, Min, ValidateBy, ValidateIf } from 'class-validator';
 
 const timePattern = /^([01]\d|2[0-3]):[0-5]\d$/;
 
@@ -33,6 +33,8 @@ export class SaveOnboardingDto {
   @ValidateIf((value) => value.completed || value.preferredGymTime !== undefined) @Matches(timePattern) preferredGymTime?: string;
   @ValidateIf((value) => value.completed || value.sleepTime !== undefined) @Matches(timePattern) sleepTime?: string;
   @IsOptional() @IsIn(['SEDENTARY', 'LIGHTLY_ACTIVE', 'MODERATELY_ACTIVE', 'VERY_ACTIVE']) dailyActivity?: string;
-  @IsOptional() @IsInt() @Min(1) @Max(6) currentStep?: number;
+  @IsOptional() @IsObject() responses?: Record<string, unknown>;
+  @IsOptional() @IsInt() schemaVersion?: number;
+  @IsOptional() @IsInt() @Min(1) @Max(20) currentStep?: number;
   @IsOptional() @IsBoolean() completed?: boolean;
 }

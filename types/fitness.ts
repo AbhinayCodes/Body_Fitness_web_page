@@ -15,9 +15,17 @@ export interface FitnessState {
   mealHistory: Array<{ date: string; meal: string }>;
 }
 
+export interface PrescriptionRange { min: number; max: number }
+export interface PrescribedExerciseView { slug: string; name: string; movementPattern: string; role: string; priority: number; modality: string; sets: PrescriptionRange; reps: PrescriptionRange | null; holdSeconds: PrescriptionRange | null; durationMinutes: PrescriptionRange | null; restSeconds: PrescriptionRange; intensity: string; optional: boolean; volumeContribution: number; cautions: string[]; note?: string }
+export interface PrescribedSessionView { weekday: string; focus: string; exercises: PrescribedExerciseView[]; committedMinutes: number; fullMinutes: number; totalWorkingSets: number; withinBudget: boolean; findings: Array<{ code: string; severity: string; message: string }> }
+export interface WorkoutPrescriptionView { archetype: string; rationale: string; sessions: PrescribedSessionView[] }
+
 export interface GeneratedWorkoutPlan {
   id: string;
   durationMinutes: number;
+  prescription?: WorkoutPrescriptionView;
+  requiresMedicalClearance?: boolean;
+  safetyNotices?: string[];
   days: Array<{ id: string; weekday: string; title: string; targetMuscleGroups: string[]; estimatedMinutes: number; exercises: Array<{ id: string; exerciseOrder: number; sets: number; reps: string; restSeconds: number; exercise: { name: string; instructions: string[] } }> }>;
 }
 
@@ -70,6 +78,10 @@ export interface OnboardingData {
   preferredGymTime?: string;
   sleepTime?: string;
   dailyActivity?: 'SEDENTARY' | 'LIGHTLY_ACTIVE' | 'MODERATELY_ACTIVE' | 'VERY_ACTIVE';
+  // Extensible store for the dynamic questionnaire. Keyed by question id so new
+  // questions can be added without schema changes; legacy fields above are derived from this.
+  responses?: Record<string, string | number | boolean | string[] | null>;
+  schemaVersion?: number;
   currentStep?: number;
   completed?: boolean;
 }

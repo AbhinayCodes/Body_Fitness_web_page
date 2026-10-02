@@ -84,19 +84,57 @@ model Exercise {
   id                 String             @id @default(uuid()) @db.Uuid
   slug               String             @unique
   name               String
+  description        String?
+  category           String             @default("resistance")
   muscleGroups       String[]
+  secondaryMuscleGroups String[]        @default([])
   movementPattern    String
+  mechanics          String?
+  laterality         String?
   equipment          String[]
+  equipmentAlternatives String[]        @default([])
   locations          String[]
   difficulty         ExerciseDifficulty
+  suitableExperience String[]           @default([])
   suitableGoals      String[]
   contraindicationNotes String?
   instructions       String[]
   estimatedMinutes   Int
+  status             String             @default("active")
   planExercises      WorkoutPlanExercise[]
   performances      ExercisePerformance[]
+  constraints        ExerciseConstraint[]
+  relationsFrom      ExerciseRelation[] @relation("ExerciseRelationFrom")
+  relationsTo        ExerciseRelation[] @relation("ExerciseRelationTo")
   createdAt          DateTime           @default(now())
   updatedAt          DateTime           @updatedAt
+}
+
+model ExerciseRelation {
+  id             String   @id @default(uuid()) @db.Uuid
+  fromExerciseId String   @db.Uuid
+  toExerciseId   String   @db.Uuid
+  relationType   String
+  note           String?
+  fromExercise   Exercise @relation("ExerciseRelationFrom", fields: [fromExerciseId], references: [id], onDelete: Cascade)
+  toExercise     Exercise @relation("ExerciseRelationTo", fields: [toExerciseId], references: [id], onDelete: Cascade)
+  createdAt      DateTime @default(now())
+
+  @@unique([fromExerciseId, toExerciseId, relationType])
+  @@index([toExerciseId])
+}
+
+model ExerciseConstraint {
+  id             String   @id @default(uuid()) @db.Uuid
+  exerciseId     String   @db.Uuid
+  constraintType String
+  area           String?
+  severity       String?
+  note           String?
+  exercise       Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+  createdAt      DateTime @default(now())
+
+  @@index([exerciseId])
 }
 
 model WorkoutPlan {
@@ -108,6 +146,7 @@ model WorkoutPlan {
   durationMinutes    Int
   trainingLocation   String
   trainingDays       String[]
+  prescription       Json?
   days               WorkoutPlanDay[]
   user               User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt          DateTime           @default(now())
@@ -193,6 +232,8 @@ model Onboarding {
   preferredGymTime       String?
   sleepTime              String?
   dailyActivity          String?
+  responses              Json?
+  schemaVersion          Int?
   currentStep            Int      @default(1)
   completed              Boolean  @default(false)
   user                   User     @relation(fields: [userId], references: [id], onDelete: Cascade)

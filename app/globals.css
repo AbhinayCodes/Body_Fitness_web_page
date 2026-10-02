@@ -238,6 +238,11 @@ input[type='checkbox'] { accent-color: var(--teal); width: 18px; height: 18px; }
 .choices { display: flex; flex-wrap: wrap; gap: 8px; }
 .choice { min-height: 40px; border: 1px solid var(--line); background: #fff; border-radius: 6px; padding: 9px 13px; font-size: 11px; font-weight: 600; color: var(--muted); }
 .choice.selected { border-color: var(--teal); background: var(--blue); color: var(--teal); }
+.onboarding-modal p.muted { color: var(--muted); font-size: 12px; line-height: 1.6; margin: 4px 0 0; }
+.onboarding-questions { display: grid; gap: 22px; }
+.onboarding-questions .field.full label { font-size: 13px; font-weight: 700; }
+.onboarding-review { display: grid; gap: 18px; }
+.onboarding-review .nav-label { margin-bottom: 6px; }
 .modal-footer { display: flex; justify-content: space-between; gap: 12px; align-items: center; margin-top: 28px; }
 .streak { padding: 14px 20px; background: var(--blue); border-radius: 6px; }
 .streak strong { display: block; font-size: 25px; }
