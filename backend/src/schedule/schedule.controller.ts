@@ -9,6 +9,7 @@ import { ScheduleService } from './schedule.service';
 export class ScheduleController {
   constructor(private readonly schedules: ScheduleService) {}
   @Get('today') getToday(@CurrentUserId() userId: string) { return this.schedules.getToday(userId); }
+  @Get('week') getWeek(@CurrentUserId() userId: string) { return this.schedules.getWeek(userId); }
   @Put(':scheduleId/meals') replace(@CurrentUserId() userId: string, @Param('scheduleId') scheduleId: string, @Body() payload: ReplaceScheduledMealDto) { return this.schedules.replaceMeal(userId, scheduleId, payload.slot, payload.recipeId); }
   @Put(':scheduleId/meals/:slot/eaten') markEaten(@CurrentUserId() userId: string, @Param('scheduleId') scheduleId: string, @Param('slot') slot: string) { return this.schedules.markMealEaten(userId, scheduleId, slot); }
 }

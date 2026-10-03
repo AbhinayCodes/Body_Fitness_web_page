@@ -1,6 +1,8 @@
 export type View = 'dashboard' | 'workout' | 'diet' | 'calendar' | 'progress' | 'profile';
 export type Modal = 'workout' | 'meal' | 'onboarding' | null;
 
+export interface NutrientComparison { target: number; actual: number; difference: number; percentDifference: number; }
+
 export interface Profile {
   name: string;
   goal: string;
@@ -40,7 +42,7 @@ export interface TodayExperience {
   date?: string;
   profile?: Profile | null;
   nutrition?: { targets?: { calories: number; proteinGrams: number; carbohydrateGrams: number; fatGrams: number; fiberGrams: number }; metadata: { message: string } };
-  schedule?: { id: string; isTrainingDay: boolean; meals: Array<{ id: string; slot: string; scheduledMinutes: number; eatenAt: string | null; alternativeRecipeIds: string[]; alternatives: Array<{ id: string; name: string; calories: number; proteinGrams: number | string }>; recipe: { id: string; name: string; calories: number; proteinGrams: number | string; carbohydrateGrams: number | string; fatGrams: number | string; fiberGrams: number | string; preparationMinutes: number; nutritionBasis: string } }>; workout: null | { id: string; title: string; estimatedMinutes: number; targetMuscleGroups: string[]; completedSets: number; targetSets: number; completedExerciseSets: Array<{ exerciseIndex: number; setsCompleted: number }>; completed: boolean; exercises: Array<{ exerciseOrder: number; sets: number; reps: string; restSeconds: number; exercise: { name: string; instructions: string[] } }> } };
+  schedule?: { id: string; isTrainingDay: boolean; meals: Array<{ id: string; slot: string; scheduledMinutes: number; eatenAt: string | null; servings: number; targetCalories: number; alternativeRecipeIds: string[]; actualNutrition: { calories: number; proteinGrams: number; carbohydrateGrams: number; fatGrams: number; fiberGrams: number }; alternatives: Array<{ id: string; name: string; calories: number; proteinGrams: number | string }>; recipe: { id: string; name: string; calories: number; proteinGrams: number | string; carbohydrateGrams: number | string; fatGrams: number | string; fiberGrams: number | string; servingDescription?: string; preparationMinutes: number; nutritionBasis: string } }>; nutritionSummary: null | { calories: NutrientComparison; proteinGrams: NutrientComparison; carbohydrateGrams: NutrientComparison; fatGrams: NutrientComparison; fiberGrams: NutrientComparison; withinTolerance: boolean }; workout: null | { id: string; title: string; estimatedMinutes: number; targetMuscleGroups: string[]; completedSets: number; targetSets: number; completedExerciseSets: Array<{ exerciseIndex: number; setsCompleted: number }>; completed: boolean; exercises: Array<{ exerciseOrder: number; sets: number; reps: string; restSeconds: number; exercise: { name: string; instructions: string[] } }> } };
   adherence?: { mealsCompleted: number; mealsPlanned: number; workoutCompletedSets: number; workoutTargetSets: number; consistencyPercent: number };
   activity?: { steps?: number | null; activeCalories?: number | null; sleepMinutes?: number | null; source: string } | null;
   message?: string;

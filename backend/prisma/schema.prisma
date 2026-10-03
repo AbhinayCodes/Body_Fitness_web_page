@@ -364,6 +364,7 @@ model DailyScheduleMeal {
   scheduledMinutes   Int
   targetCalories     Int
   recipeId           String             @db.Uuid
+  servings           Decimal            @default(1) @db.Decimal(4, 2)
   alternativeRecipeIds String[]          @default([])
   eatenAt            DateTime?
   dailySchedule      DailySchedule      @relation(fields: [dailyScheduleId], references: [id], onDelete: Cascade)
