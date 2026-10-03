@@ -25,7 +25,8 @@ subdivision; export retains four normalized influences per vertex. Eyes attach
 to the head, and finger landmarks define the palm plane for floor poses.
 The viewer drives this CC0 body with the exercise pose solver and its own limb
 lengths. The Workout guide uses only the CC0 human body animation, with play/pause,
-seek, speed and Movement/Muscles controls. Reduced motion disables autoplay.
+seek, speed and Movement/Muscles controls. The animation never autoplays; it opens
+paused and only runs after the user presses play.
 The preview still opens in the neutral muscle view, with movement selectable.
 The anatomical model option and Workout model selector have been removed.
 The older atlas assets and their attribution below are retained for provenance;

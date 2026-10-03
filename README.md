@@ -45,8 +45,9 @@ The Next.js workout page uses a detailed Z-Anatomy / BodyParts3D anatomical huma
 model, rendered locally with Three.js, for all 17 seeded exercise guides. Actual
 muscle surfaces are highlighted red. Front, side, back, and rotating views are
 available alongside the full exercise instructions. Playback supports pause,
-reset, scrubbing, and half speed. Reduced-motion preferences disable autoplay;
-the plank is a static hold. Viewing a guide does not log sets or change progress.
+reset, scrubbing, and half speed. The animation never plays automatically: each
+guide opens paused and only animates after the user presses play (the plank is a
+static hold). Viewing a guide does not log sets or change progress.
 
 The adapted model is CC BY-SA 4.0, with source credits in the viewer and
 `public/models/README.md`. No commercial exercise GIFs or scraped animations are

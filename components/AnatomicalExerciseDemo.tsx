@@ -26,11 +26,8 @@ export function ExerciseDemo({ guide, instructions, modelSource = 'cc0', initial
   const headingId = useId();
 
   useEffect(() => {
-    const preference = window.matchMedia('(prefers-reduced-motion: reduce)');
-    setPlaying(!preference.matches && !guide.hold);
-    const change = () => { if (preference.matches) setPlaying(false); };
-    preference.addEventListener('change', change);
-    return () => preference.removeEventListener('change', change);
+    // Open paused: the animation only runs after the user presses play (user consent).
+    setPlaying(false);
   }, [guide]);
 
   useEffect(() => {
