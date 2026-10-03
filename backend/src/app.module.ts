@@ -4,6 +4,7 @@ import { ActivityModule } from './activity/activity.module';
 import { AuthModule } from './auth/auth.module';
 import { validateEnvironment } from './config/env.validation';
 import { DataAccessModule } from './data-access/data-access.module';
+import { HealthModule } from './health/health.module';
 import { MealModule } from './meal/meal.module';
 import { NutritionModule } from './nutrition/nutrition.module';
 import { OnboardingModule } from './onboarding/onboarding.module';
@@ -19,6 +20,7 @@ import { ReminderModule } from './reminder/reminder.module';
 @Module({
 	imports: [
 		ConfigModule.forRoot({ isGlobal: true, validate: validateEnvironment }),
+		HealthModule,
 		AuthModule,
 		DataAccessModule,
 		OnboardingModule,
