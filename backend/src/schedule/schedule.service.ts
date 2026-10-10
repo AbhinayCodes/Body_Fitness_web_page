@@ -24,7 +24,17 @@ export class ScheduleService {
     if (existing) return existing;
     const catalog = await this.recipes.findMany({});
     const plannerRecipes = catalog.map((recipe) => ({ ...recipe, ingredientNames: recipe.ingredients?.map((entry) => entry.ingredient.name) ?? [] }));
-    const generated = this.planner.generate({ wakeTime: onboarding.wakeTime, sleepTime: onboarding.sleepTime, gymTime: onboarding.preferredGymTime ?? undefined, workoutDurationMinutes: onboarding.workoutDurationMinutes, isTrainingDay: Boolean(workoutPlanDay), dietType: onboarding.dietType, restrictions: onboarding.foodRestrictions, targets: nutrition.targets, dayNumber: dayNumber(date) }, plannerRecipes);
+    const responses = (onboarding.responses ?? {}) as Record<string, unknown>;
+    const splitText = (value: unknown) => (typeof value === 'string' ? value.split(',').map((item) => item.trim()).filter(Boolean) : []);
+    const asArray = (value: unknown) => (Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : []);
+    const preferences = {
+      likes: [...splitText(responses.foodsLike), ...splitText(responses.foodsRegular)],
+      dislikes: [...splitText(responses.foodsDislike), ...splitText(responses.strongDislikes)],
+      cuisines: asArray(responses.preferredCuisines).map((cuisine) => cuisine.replace(/_/g, ' ')),
+      foodPreferences: onboarding.foodPreferences ?? [],
+    };
+    const mealsPerDay = typeof responses.mealsPerDay === 'string' ? Number(responses.mealsPerDay) : typeof responses.mealsPerDay === 'number' ? responses.mealsPerDay : undefined;
+    const generated = this.planner.generate({ wakeTime: onboarding.wakeTime, sleepTime: onboarding.sleepTime, gymTime: onboarding.preferredGymTime ?? undefined, workoutDurationMinutes: onboarding.workoutDurationMinutes, isTrainingDay: Boolean(workoutPlanDay), dietType: onboarding.dietType, restrictions: onboarding.foodRestrictions, targets: nutrition.targets, dayNumber: dayNumber(date), preferences, mealsPerDay: Number.isFinite(mealsPerDay) ? mealsPerDay : undefined }, plannerRecipes);
     return this.prisma.dailySchedule.create({ data: { userId, date: new Date(`${date}T00:00:00.000Z`), sourceFingerprint, isTrainingDay: Boolean(workoutPlanDay), workoutPlanDayId: workoutPlanDay?.id, meals: { create: generated.meals } }, include: scheduleInclude });
   }
 

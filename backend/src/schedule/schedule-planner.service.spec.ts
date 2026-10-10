@@ -3,14 +3,23 @@ import { SchedulePlannerService, SchedulePlanningError, scaleServings, summarize
 import type { DailyScheduleInput, ScheduleRecipe, SummaryMeal } from './schedule-planner.types';
 
 const planner = new SchedulePlannerService();
+// Target macro ratio used so each recipe is internally consistent (P*4 + C*4 + F*9 ≈ calories) and
+// shares the day's target ratio — a plan that hits calories then also hits every macro.
+const TARGET = { calories: 2110, proteinGrams: 120, carbohydrateGrams: 250, fatGrams: 70, fiberGrams: 30 };
+const macrosFor = (calories: number) => ({
+  proteinGrams: Math.round((TARGET.proteinGrams * calories) / TARGET.calories),
+  carbohydrateGrams: Math.round((TARGET.carbohydrateGrams * calories) / TARGET.calories),
+  fatGrams: Math.round((TARGET.fatGrams * calories) / TARGET.calories),
+  fiberGrams: Math.round((TARGET.fiberGrams * calories) / TARGET.calories),
+});
 const recipes: ScheduleRecipe[] = [
   ['b1', 'BREAKFAST', 'VEGAN', 350], ['b2', 'BREAKFAST', 'VEGAN', 300], ['b3', 'BREAKFAST', 'VEGETARIAN', 420],
   ['l1', 'LUNCH', 'VEGAN', 500], ['l2', 'LUNCH', 'VEGAN', 480], ['l3', 'LUNCH', 'VEGETARIAN', 560],
   ['s1', 'SNACK', 'VEGETARIAN', 260], ['s2', 'SNACK', 'VEGAN', 220],
   ['d1', 'DINNER', 'VEGETARIAN', 520], ['d2', 'DINNER', 'VEGAN', 460], ['d3', 'DINNER', 'VEGETARIAN', 500],
   ['pre', 'PRE_WORKOUT', 'VEGAN', 280], ['post', 'POST_WORKOUT', 'NON_VEGETARIAN', 560],
-].map(([id, mealCategory, dietType, calories]) => ({ id: String(id), slug: String(id), name: String(id), mealCategory: String(mealCategory), dietType: String(dietType), calories: Number(calories), proteinGrams: 20, carbohydrateGrams: 50, fatGrams: 10, fiberGrams: 8, allergens: [], nutritionBasis: 'Estimate' }));
-const base: DailyScheduleInput = { wakeTime: '06:00', sleepTime: '23:00', gymTime: '07:00', workoutDurationMinutes: 45, isTrainingDay: true, dietType: 'Vegetarian', restrictions: [], targets: { calories: 2200, proteinGrams: 120, carbohydrateGrams: 250, fatGrams: 70, fiberGrams: 30 }, dayNumber: 0 };
+].map(([id, mealCategory, dietType, calories]) => ({ id: String(id), slug: String(id), name: String(id), mealCategory: String(mealCategory), dietType: String(dietType), calories: Number(calories), ...macrosFor(Number(calories)), allergens: [], nutritionBasis: 'Estimate' }));
+const base: DailyScheduleInput = { wakeTime: '06:00', sleepTime: '23:00', gymTime: '07:00', workoutDurationMinutes: 45, isTrainingDay: true, dietType: 'Vegetarian', restrictions: [], targets: { ...TARGET }, dayNumber: 0 };
 
 function actualFor(input: DailyScheduleInput) {
   const schedule = planner.generate(input, recipes);
