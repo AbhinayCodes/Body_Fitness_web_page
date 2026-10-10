@@ -21,6 +21,9 @@ const FOOD_PREFERENCE_BONUS = -0.03;
 // Documented macro tolerances (percent). Calories + protein are the core adherence signals.
 export const MACRO_TOLERANCES = { calories: 10, proteinGrams: 15, carbohydrateGrams: 15, fatGrams: 20, fiberGrams: 25 } as const;
 
+// Calorie target at/above which a plan defaults to four meals (adds a snack) to keep portions practical.
+const AUTO_FOUR_MEAL_CALORIES = 2600;
+
 @Injectable()
 export class SchedulePlannerService {
   generate(input: DailyScheduleInput, recipes: ScheduleRecipe[]): GeneratedDailySchedule {
@@ -32,8 +35,10 @@ export class SchedulePlannerService {
       { slot: 'LUNCH', time: Math.round((wake + sleep) / 2), share: 0.32 },
       { slot: 'DINNER', time: sleep - 120, share: 0.31 },
     ];
-    // Honour a higher meal-count preference by adding a mid-afternoon snack when the day is long enough.
-    if ((input.mealsPerDay ?? 3) >= 4) {
+    // Honour the meal-count preference; otherwise default larger-calorie plans to 4 meals so no single
+    // dish must be scaled to an impractical portion. Lower-calorie plans keep the standard 3 meals.
+    const effectiveMealsPerDay = input.mealsPerDay ?? (input.targets.calories >= AUTO_FOUR_MEAL_CALORIES ? 4 : 3);
+    if (effectiveMealsPerDay >= 4) {
       const snackTime = Math.round((wake + sleep) / 2) + 210;
       candidates.push({ slot: 'SNACK', time: snackTime, share: 0.12 });
     }

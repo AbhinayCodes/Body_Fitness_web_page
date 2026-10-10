@@ -54,16 +54,14 @@ describe('catalog data integrity', () => {
     }
   });
 
-  it('identifies (and does not newly introduce) recipes whose ingredient list is an unreliable calorie proxy', () => {
-    // Known legacy curation gaps: poha absorbs water (ingredient sum over-counts) and chaat has
-    // unlisted aromatics/sev (ingredient sum under-counts). Documented, not fabricated. The guard
-    // ensures no NEW recipe drifts >45% from its ingredient-derived estimate.
-    const KNOWN = ['vegetable-poha', 'sprouts-chaat'];
+  it('keeps every recipe within 45% of its ingredient-derived calorie estimate (no unreliable proxies)', () => {
+    // Phase 2.1 corrected the two prior offenders (vegetable-poha, sprouts-chaat) so their stored
+    // calories now agree with their ingredient lists. No recipe may drift >45% from the estimate.
     const grossOffenders = recipeCatalogSeeds.filter((recipe) => {
       const computed = computeRecipeNutritionFromIngredients(recipe.ingredients.map(([name, quantity, unit]) => ({ name, quantity, unit })), ingredientReferences);
       return Math.abs(computed.calories - recipe.calories) / recipe.calories > 0.45;
     }).map((recipe) => recipe.slug);
-    expect(grossOffenders.every((slug) => KNOWN.includes(slug))).toBe(true);
+    expect(grossOffenders).toEqual([]);
   });
 });
 
