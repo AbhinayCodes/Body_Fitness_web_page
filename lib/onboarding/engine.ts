@@ -90,7 +90,7 @@ const GOAL_TO_LEGACY: Record<string, OnboardingData['primaryGoal']> = {
 
 const DIET_TO_LEGACY: Record<string, OnboardingData['dietType']> = {
   vegetarian: 'Vegetarian',
-  eggetarian: 'Vegetarian',
+  eggetarian: 'Eggetarian',
   non_vegetarian: 'Non-vegetarian',
   vegan: 'Vegan',
   other: 'No preference',

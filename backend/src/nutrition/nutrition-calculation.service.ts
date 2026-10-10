@@ -8,12 +8,16 @@ const activityMultipliers: Record<DailyActivity, number> = {
   VERY_ACTIVE: 1.725,
 };
 
+// Carbs are derived as the energy remainder, so rounding can shift macro-sum calories by a few kcal.
+// Anything beyond this documented tolerance indicates an inconsistent (unsafe) target.
+const MACRO_TOLERANCE_CALORIES = 10;
+
 @Injectable()
 export class NutritionCalculationService {
   calculate(input: NutritionCalculationInput): CalculationResult {
     this.validate(input);
     if (input.requiresMedicalNutritionSupport) {
-      return { status: 'MEDICAL_REFERRAL', metadata: { estimated: true, message: 'This app cannot provide medical nutrition management. Please work with a qualified healthcare professional or registered dietitian.' } };
+      return { status: 'MEDICAL_REFERRAL', metadata: { estimated: true, reasons: input.medicalNutritionReasons, message: 'This app cannot provide medical nutrition management. Please work with a qualified healthcare professional or registered dietitian.' } };
     }
     if (input.age < 18) {
       return { status: 'UNDER_18', metadata: { estimated: true, message: 'This app does not set calorie or body-composition targets for people under 18. Please discuss nutrition needs with a parent, guardian, and qualified healthcare professional.' } };
@@ -23,14 +27,29 @@ export class NutritionCalculationService {
     const { multiplier, source } = this.activityMultiplier(input);
     const estimatedDailyEnergyExpenditure = basalEnergyRequirement * multiplier;
     const goalAdjustmentCalories = input.primaryGoal === 'Build muscle' ? 200 : input.primaryGoal === 'Lose fat' ? -300 : 0;
-    const calories = roundToTen(estimatedDailyEnergyExpenditure + goalAdjustmentCalories);
+    // Safety floor: never recommend eating below basal metabolic rate, even for aggressive goals.
+    const adjustedCalories = estimatedDailyEnergyExpenditure + goalAdjustmentCalories;
+    const caloriesFlooredToBasal = adjustedCalories < basalEnergyRequirement;
+    const calories = roundToTen(Math.max(adjustedCalories, basalEnergyRequirement));
+
     const proteinPerKg = input.primaryGoal === 'Build muscle' ? (input.trainingDays.length >= 3 ? 1.6 : 1.4) : input.primaryGoal === 'Lose fat' ? 1.5 : 1.2;
     const proteinGrams = Math.round(input.weightKg * proteinPerKg);
     const fatGrams = Math.round(Math.max(input.weightKg * 0.8, (calories * 0.2) / 9));
-    const carbohydrateGrams = Math.max(0, Math.round((calories - proteinGrams * 4 - fatGrams * 9) / 4));
-    const targets: NutritionTargets = { calories, proteinGrams, fatGrams, carbohydrateGrams, fiberGrams: Math.round((calories / 1000) * 14) };
+    const proteinFatCalories = proteinGrams * 4 + fatGrams * 9;
+    const carbohydrateGrams = Math.round((calories - proteinFatCalories) / 4);
+    const fiberGrams = Math.round((calories / 1000) * 14);
 
-    return { status: 'READY', targets, metadata: { estimated: true, basalEnergyRequirement: Math.round(basalEnergyRequirement), activityMultiplier: multiplier, estimatedDailyEnergyExpenditure: Math.round(estimatedDailyEnergyExpenditure), goalAdjustmentCalories, activitySource: source, message: 'These are estimated starting targets, not exact energy expenditure or medical nutrition advice. Reassess with real-world progress, hunger, recovery, and professional guidance where appropriate.' } };
+    // Consistency guard: do not clamp carbs independently to hide an impossible macro combination.
+    // If the required protein and fat already exceed the energy budget, there is no valid plan.
+    const macroCalories = proteinGrams * 4 + carbohydrateGrams * 4 + fatGrams * 9;
+    const unsafe = calories <= 0 || proteinGrams < 0 || fatGrams < 0 || carbohydrateGrams < 0 || fiberGrams < 0 || proteinFatCalories > calories || Math.abs(macroCalories - calories) > MACRO_TOLERANCE_CALORIES;
+    if (unsafe) {
+      return { status: 'NEEDS_REVIEW', metadata: { estimated: true, basalEnergyRequirement: Math.round(basalEnergyRequirement), reasons: ['The combination of body measurements and goal produces an implausible or internally inconsistent target.'], message: 'We could not calculate a safe, consistent nutrition target from these inputs. Please double-check your height, weight, and age, or consult a qualified professional for a tailored plan.' } };
+    }
+
+    const targets: NutritionTargets = { calories, proteinGrams, fatGrams, carbohydrateGrams, fiberGrams };
+
+    return { status: 'READY', targets, metadata: { estimated: true, basalEnergyRequirement: Math.round(basalEnergyRequirement), activityMultiplier: multiplier, estimatedDailyEnergyExpenditure: Math.round(estimatedDailyEnergyExpenditure), goalAdjustmentCalories, activitySource: source, caloriesFlooredToBasal, message: 'These are estimated starting targets, not exact energy expenditure or medical nutrition advice. Reassess with real-world progress, hunger, recovery, and professional guidance where appropriate.' } };
   }
 
   private basalEnergyRequirement(input: NutritionCalculationInput): number {

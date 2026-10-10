@@ -56,4 +56,4 @@ export interface CatalogExercise {
   constraints?: ExerciseConstraintInfo[];
 }
 export interface GeneratedWorkoutDay { weekday: string; title: string; targetMuscleGroups: string[]; estimatedMinutes: number; exercises: Array<{ exerciseId: string; exerciseOrder: number; sets: number; reps: string; restSeconds: number; instructions: string[] }>; }
-export interface GeneratedWorkoutPlan { goal: string; experience: string; durationMinutes: number; trainingLocation: string; trainingDays: string[]; days: GeneratedWorkoutDay[]; requiresMedicalClearance?: boolean; safetyNotices?: string[]; }
+export interface GeneratedWorkoutPlan { goal: string; experience: string; durationMinutes: number; trainingLocation: string; trainingDays: string[]; days: GeneratedWorkoutDay[]; requiresMedicalClearance?: boolean; requiresYouthReview?: boolean; safetyNotices?: string[]; }

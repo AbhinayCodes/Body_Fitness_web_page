@@ -1,0 +1,34 @@
+{
+  "base": {
+    "age": 25,
+    "sex": "MALE",
+    "heightCm": 180,
+    "weightKg": 75,
+    "primaryGoal": "Build muscle",
+    "trainingExperience": "INTERMEDIATE",
+    "trainingDays": [
+      "Monday",
+      "Tuesday",
+      "Thursday",
+      "Friday"
+    ],
+    "workoutDurationMinutes": 60,
+    "trainingLocation": "GYM",
+    "dietType": "Vegetarian",
+    "foodPreferences": [],
+    "foodRestrictions": [],
+    "wakeTime": "06:30",
+    "workSchedule": "Office day shift",
+    "preferredGymTime": "18:00",
+    "sleepTime": "22:30",
+    "dailyActivity": "MODERATELY_ACTIVE",
+    "completed": true,
+    "currentStep": 6
+  },
+  "api": "https://formwell-api.onrender.com",
+  "phone": "9100000007",
+  "loginStatus": 201,
+  "scenarios": {},
+  "weekly": {},
+  "error": "LOGIN FAILED"
+}

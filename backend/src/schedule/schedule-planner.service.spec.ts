@@ -93,3 +93,91 @@ describe('SchedulePlannerService', () => {
     expect(typeof summary.withinTolerance).toBe('boolean');
   });
 });
+
+// Allergy normalization + diet correctness through the real planner path.
+function recipe(partial: Partial<ScheduleRecipe> & Pick<ScheduleRecipe, 'id' | 'mealCategory' | 'dietType'>): ScheduleRecipe {
+  return { slug: partial.id, name: partial.id, calories: 400, proteinGrams: 20, carbohydrateGrams: 50, fatGrams: 10, fiberGrams: 8, allergens: [], ingredientNames: [], nutritionBasis: 'Estimate', ...partial } as ScheduleRecipe;
+}
+
+// A catalog with at least three options per slot so a filtered-out dish still leaves a valid plan + alternatives.
+const safetyCatalog: ScheduleRecipe[] = [
+  recipe({ id: 'b-vegan', mealCategory: 'BREAKFAST', dietType: 'VEGAN', ingredientNames: ['Besan (gram flour)', 'Onion'] }),
+  recipe({ id: 'b-paneer', mealCategory: 'BREAKFAST', dietType: 'VEGETARIAN', allergens: ['DAIRY'], ingredientNames: ['Paneer', 'Whole wheat flour'] }),
+  recipe({ id: 'b-egg', mealCategory: 'BREAKFAST', dietType: 'NON_VEGETARIAN', allergens: ['EGG', 'GLUTEN'], ingredientNames: ['Egg', 'Whole wheat flour'] }),
+  recipe({ id: 'l-vegan', mealCategory: 'LUNCH', dietType: 'VEGAN', ingredientNames: ['Rajma, cooked', 'Rice, cooked'] }),
+  recipe({ id: 'l-paneer', mealCategory: 'LUNCH', dietType: 'VEGETARIAN', allergens: ['DAIRY'], ingredientNames: ['Paneer', 'Rice, cooked'] }),
+  recipe({ id: 'l-chicken', mealCategory: 'LUNCH', dietType: 'NON_VEGETARIAN', ingredientNames: ['Chicken breast, cooked', 'Rice, cooked'] }),
+  recipe({ id: 'd-vegan', mealCategory: 'DINNER', dietType: 'VEGAN', ingredientNames: ['Tofu', 'Rice, cooked'], allergens: ['SOY'] }),
+  recipe({ id: 'd-paneer', mealCategory: 'DINNER', dietType: 'VEGETARIAN', allergens: ['DAIRY'], ingredientNames: ['Paneer', 'Spinach'] }),
+  recipe({ id: 'd-fish', mealCategory: 'DINNER', dietType: 'NON_VEGETARIAN', allergens: ['FISH'], ingredientNames: ['Fish, cooked', 'Rice, cooked'] }),
+  recipe({ id: 'd-egg', mealCategory: 'DINNER', dietType: 'NON_VEGETARIAN', allergens: ['EGG', 'GLUTEN'], ingredientNames: ['Egg', 'Whole wheat flour'] }),
+];
+
+const restDay: DailyScheduleInput = { ...base, isTrainingDay: false, gymTime: undefined };
+
+function plan(overrides: Partial<DailyScheduleInput>) {
+  const schedule = planner.generate({ ...restDay, ...overrides }, safetyCatalog);
+  const ids = schedule.meals.map((meal) => meal.recipeId);
+  const all = [...ids, ...schedule.meals.flatMap((meal) => meal.alternativeRecipeIds)];
+  return { schedule, ids, all, byId: (id: string) => safetyCatalog.find((candidate) => candidate.id === id)! };
+}
+
+describe('SchedulePlannerService — allergy normalization and diet safety', () => {
+  it.each(['DAIRY', 'dairy', 'Dairy', '  dairy  ', 'Dairy-free', 'lactose'])('excludes dairy for restriction "%s" regardless of case/synonym', (restriction) => {
+    const { all, byId } = plan({ dietType: 'Non-vegetarian', restrictions: [restriction] });
+    for (const id of all) expect(byId(id).allergens).not.toContain('DAIRY');
+  });
+
+  it('never selects an incompatible recipe or offers one as an alternative', () => {
+    const { ids, all, byId } = plan({ dietType: 'Non-vegetarian', restrictions: ['dairy', 'gluten'] });
+    expect(ids.length).toBeGreaterThan(0);
+    for (const id of all) {
+      expect(byId(id).allergens).not.toContain('DAIRY');
+      expect(byId(id).allergens).not.toContain('GLUTEN');
+    }
+  });
+
+  it('catches an allergen from ingredient data even if the curated tag is missing', () => {
+    const untagged = safetyCatalog.map((candidate) => (candidate.id === 'b-paneer' ? { ...candidate, allergens: [] as string[] } : candidate));
+    const schedule = planner.generate({ ...restDay, dietType: 'Vegetarian', restrictions: ['dairy'] }, untagged);
+    const all = [...schedule.meals.map((meal) => meal.recipeId), ...schedule.meals.flatMap((meal) => meal.alternativeRecipeIds)];
+    expect(all).not.toContain('b-paneer');
+  });
+
+  it('handles multiple simultaneous restrictions', () => {
+    const { all, byId } = plan({ dietType: 'Non-vegetarian', restrictions: ['DAIRY', 'soy', 'fish'] });
+    for (const id of all) {
+      for (const token of ['DAIRY', 'SOY', 'FISH']) expect(byId(id).allergens).not.toContain(token);
+    }
+  });
+
+  it('serves eggetarians egg dishes but never meat or fish', () => {
+    const { all, byId } = plan({ dietType: 'Eggetarian' });
+    const diets = new Set(all.map((id) => byId(id).dietType));
+    for (const id of all) {
+      const groups = byId(id);
+      if (groups.dietType === 'NON_VEGETARIAN') expect(groups.allergens).toContain('EGG');
+      expect(groups.ingredientNames).not.toContain('Chicken breast, cooked');
+      expect(groups.ingredientNames).not.toContain('Fish, cooked');
+    }
+    expect(diets.has('NON_VEGETARIAN')).toBe(true); // egg dish actually reachable
+  });
+
+  it('keeps vegetarian plans free of meat, fish and egg', () => {
+    const { all, byId } = plan({ dietType: 'Vegetarian' });
+    for (const id of all) {
+      expect(['VEGAN', 'VEGETARIAN']).toContain(byId(id).dietType);
+      expect(byId(id).allergens).not.toContain('EGG');
+    }
+  });
+
+  it('keeps vegan plans fully vegan', () => {
+    const { all, byId } = plan({ dietType: 'Vegan', restrictions: [] });
+    for (const id of all) expect(byId(id).dietType).toBe('VEGAN');
+  });
+
+  it('allows meat for non-vegetarians', () => {
+    const { all, byId } = plan({ dietType: 'Non-vegetarian' });
+    expect(all.some((id) => byId(id).dietType === 'NON_VEGETARIAN')).toBe(true);
+  });
+});

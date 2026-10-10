@@ -71,4 +71,42 @@ describe('NutritionCalculationService', () => {
     expect(() => calculator.calculate({ ...baseInput, weightKg: 24 })).toThrow('Weight must be between 25 and 350 kg.');
     expect(() => calculator.calculate({ ...baseInput, trainingDays: [] })).toThrow('At least one training day is required.');
   });
+
+  it('never recommends eating below basal metabolic rate', () => {
+    const result = calculator.calculate({ ...baseInput, dailyActivity: 'SEDENTARY', primaryGoal: 'Lose fat' });
+    expect(result.status).toBe('READY');
+    expect(result.metadata.caloriesFlooredToBasal).toBe(true);
+    expect(result.targets!.calories).toBeGreaterThanOrEqual(result.metadata.basalEnergyRequirement!);
+  });
+
+  it('never returns negative macros for extreme but accepted minimum measurements', () => {
+    const result = calculator.calculate({ age: 90, sex: 'FEMALE', heightCm: 100, weightKg: 25, trainingDays: ['Monday'], workoutDurationMinutes: 30, trainingExperience: 'BEGINNER', trainingLocation: 'HOME', primaryGoal: 'Lose fat', dailyActivity: 'SEDENTARY' });
+    if (result.status === 'READY') {
+      for (const key of ['calories', 'proteinGrams', 'carbohydrateGrams', 'fatGrams', 'fiberGrams'] as const) expect(result.targets![key]).toBeGreaterThanOrEqual(0);
+    } else {
+      expect(result.status).toBe('NEEDS_REVIEW');
+    }
+  });
+
+  it('keeps macro calories internally consistent with the calorie target for normal inputs', () => {
+    for (const goal of ['Build muscle', 'Lose fat', 'Maintain fitness'] as const) {
+      const targets = calculator.calculate({ ...baseInput, primaryGoal: goal }).targets!;
+      const macroCalories = targets.proteinGrams * 4 + targets.carbohydrateGrams * 4 + targets.fatGrams * 9;
+      expect(Math.abs(macroCalories - targets.calories)).toBeLessThanOrEqual(10);
+    }
+  });
+
+  it('routes an impossible, internally inconsistent macro combination to review instead of clamping', () => {
+    // Very high weight on a very short frame makes required protein+fat exceed the energy budget.
+    const result = calculator.calculate({ ...baseInput, sex: 'MALE', age: 100, heightCm: 100, weightKg: 350, dailyActivity: 'SEDENTARY', primaryGoal: 'Lose fat' });
+    expect(result.status).toBe('NEEDS_REVIEW');
+    expect(result.targets).toBeUndefined();
+    expect(result.metadata.reasons?.length).toBeGreaterThan(0);
+  });
+
+  it('includes the medical reasons in a referral result', () => {
+    const result = calculator.calculate({ ...baseInput, requiresMedicalNutritionSupport: true, medicalNutritionReasons: ['A doctor has restricted your diet.'] });
+    expect(result.status).toBe('MEDICAL_REFERRAL');
+    expect(result.metadata.reasons).toEqual(['A doctor has restricted your diet.']);
+  });
 });

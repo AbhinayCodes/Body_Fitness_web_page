@@ -1,0 +1,16 @@
+scenario,diet,goal,weight_kg,activity,restrictions,target_cal,target_protein,target_carb,target_fat,target_fiber,actual_cal,cal_pct,actual_protein,protein_pct,actual_carb,carb_pct,actual_fat,fat_pct,actual_fiber,fiber_pct,within_tolerance,meals
+P1_veg_muscle_75_moderate,Vegetarian,Build muscle,75,MODERATELY_ACTIVE,,2920,120,464,65,41,2940,0.7,137,14.2,378,-18.5,95,46.2,71,73.2,true,Besan Chilla x3 (900) | Chole with Roti x2 (1000) | Palak Paneer with Roti x2 (1040)
+P2_fat_loss,Vegetarian,Lose fat,75,MODERATELY_ACTIVE,,2420,113,357,60,34,2405,-0.6,112,-0.9,314,-12,76,26.7,59,73.5,true,Besan Chilla x2.5 (750) | Chole with Roti x1.75 (875) | Palak Paneer with Roti x1.5 (780)
+P3_weight_90,Vegetarian,Build muscle,90,MODERATELY_ACTIVE,,3150,144,482,72,44,3065,-2.7,142,-1.4,399,-17.2,98,36.1,75,70.5,true,Besan Chilla x3 (900) | Chole with Roti x2.25 (1125) | Palak Paneer with Roti x2 (1040)
+P4_sedentary,Vegetarian,Build muscle,75,SEDENTARY,,2310,120,323,60,32,2330,0.9,108,-10,304,-5.9,74,23.3,57,78.1,true,Besan Chilla x2.25 (675) | Chole with Roti x1.75 (875) | Palak Paneer with Roti x1.5 (780)
+DIET_vegan,Vegan,Build muscle,75,MODERATELY_ACTIVE,,2920,120,464,65,41,2908,-0.4,101,-15.8,466,0.4,69,6.2,63,53.7,false,Vegetable Poha x2.75 (908) | Rajma Chawal x2 (1040) | Tofu Veg Stir Fry with Rice x2 (960)
+DIET_nonveg,Non-vegetarian,Build muscle,75,MODERATELY_ACTIVE,,2920,120,464,65,41,2860,-2.1,160,33.3,358,-22.8,85,30.8,42,2.4,false,Dosa with Coconut Chutney x2.75 (880) | Paneer Veg Rice Bowl x1.75 (980) | Grilled Chicken with Sweet Potato x2 (1000)
+ALLERGY_DAIRY_upper,Non-vegetarian,Build muscle,75,MODERATELY_ACTIVE,DAIRY,2920,120,464,65,41,3058,4.7,170,41.7,382,-17.7,93,43.1,52,26.8,false,Idli with Sambar x2.5 (900) | Chicken Curry with Roti x2 (1100) | Egg Bhurji with Roti x2.25 (1058)
+ALLERGY_dairy_lower,Non-vegetarian,Build muscle,75,MODERATELY_ACTIVE,dairy,2920,120,464,65,41,2860,-2.1,160,33.3,358,-22.8,85,30.8,42,2.4,false,Dosa with Coconut Chutney x2.75 (880) | Paneer Veg Rice Bowl x1.75 (980 DAIRY-LEAK) | Grilled Chicken with Sweet Potato x2 (1000)
+WEEK_2026-09-28_Mon,Vegetarian,Build muscle,75,MODERATELY_ACTIVE,,2920,120,464,65,41,2918,-0.1,,,,,,,,,na,Moong Dal Chilla x2.75 | Dal Rice with Vegetables x2 | (pre/post workout)
+WEEK_2026-09-29_Tue,Vegetarian,Build muscle,75,MODERATELY_ACTIVE,,2920,120,464,65,41,2975,1.9,,,,,,,,,na,Paneer Paratha x2 | Paneer Veg Rice Bowl x1.75 | (pre/post workout)
+WEEK_2026-09-30_Wed,Vegetarian,Build muscle,75,MODERATELY_ACTIVE,,2920,120,464,65,41,2880,-1.4,,,,,,,,,na,Vegetable Oats Upma x2.75 | Rajma Chawal x2 | Tofu Veg Stir Fry with Rice x2
+WEEK_2026-10-01_Thu,Vegetarian,Build muscle,75,MODERATELY_ACTIVE,,2920,120,464,65,41,2900,-0.7,,,,,,,,,na,Vegetable Poha x2.5 | Soya Chunk Curry with Rice x1.75 | (pre/post workout)
+WEEK_2026-10-02_Fri,Vegetarian,Build muscle,75,MODERATELY_ACTIVE,,2920,120,464,65,41,2950,1.0,,,,,,,,,na,Banana Almond Oats Bowl x2.25 | Vegetable Pulao with Raita x2 | (pre/post workout)
+WEEK_2026-10-03_Sat,Vegetarian,Build muscle,75,MODERATELY_ACTIVE,,2920,120,464,65,41,2940,0.7,,,,,,,,,na,Besan Chilla x3 | Chole with Roti x2 | Palak Paneer with Roti x2
+WEEK_2026-10-04_Sun,Vegetarian,Build muscle,75,MODERATELY_ACTIVE,,2920,120,464,65,41,3020,3.4,,,,,,,,,na,Dosa with Coconut Chutney x2.75 | Dal Rice with Vegetables x2.25 | Paneer Bhurji with Roti x2

@@ -1,0 +1,4 @@
+HTML bytes: 6178 JS chunks: 9
+NEW markers present: ["Planned meals provide","kcal planned"]
+OLD markers present: []
+VERDICT: FRONTEND=NEW

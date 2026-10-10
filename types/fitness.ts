@@ -27,6 +27,7 @@ export interface GeneratedWorkoutPlan {
   durationMinutes: number;
   prescription?: WorkoutPrescriptionView;
   requiresMedicalClearance?: boolean;
+  requiresYouthReview?: boolean;
   safetyNotices?: string[];
   days: Array<{ id: string; weekday: string; title: string; targetMuscleGroups: string[]; estimatedMinutes: number; exercises: Array<{ id: string; exerciseOrder: number; sets: number; reps: string; restSeconds: number; exercise: { name: string; instructions: string[] } }> }>;
 }
@@ -38,7 +39,7 @@ export interface DailySchedule {
 }
 
 export interface TodayExperience {
-  status: 'READY' | 'UNDER_18' | 'MEDICAL_REFERRAL';
+  status: 'READY' | 'UNDER_18' | 'MEDICAL_REFERRAL' | 'NEEDS_REVIEW';
   date?: string;
   profile?: Profile | null;
   nutrition?: { targets?: { calories: number; proteinGrams: number; carbohydrateGrams: number; fatGrams: number; fiberGrams: number }; metadata: { message: string } };

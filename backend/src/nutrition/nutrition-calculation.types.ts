@@ -17,6 +17,7 @@ export interface NutritionCalculationInput {
   workSchedule?: string;
   preferredGymTime?: string;
   requiresMedicalNutritionSupport?: boolean;
+  medicalNutritionReasons?: string[];
 }
 
 export interface NutritionTargets {
@@ -28,7 +29,7 @@ export interface NutritionTargets {
 }
 
 export interface CalculationResult {
-  status: 'READY' | 'UNDER_18' | 'MEDICAL_REFERRAL';
+  status: 'READY' | 'UNDER_18' | 'MEDICAL_REFERRAL' | 'NEEDS_REVIEW';
   targets?: NutritionTargets;
   metadata: {
     estimated: true;
@@ -37,6 +38,8 @@ export interface CalculationResult {
     estimatedDailyEnergyExpenditure?: number;
     goalAdjustmentCalories?: number;
     activitySource?: 'SELF_REPORTED' | 'TRAINING_DERIVED';
+    caloriesFlooredToBasal?: boolean;
+    reasons?: string[];
     message: string;
   };
 }

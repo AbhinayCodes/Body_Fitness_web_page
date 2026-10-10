@@ -25,7 +25,7 @@ export class SaveOnboardingDto {
   @ValidateIf((value) => value.completed || value.workoutDurationMinutes !== undefined) @IsIn([30, 45, 60, 90]) workoutDurationMinutes?: number;
   @ValidateIf((value) => value.completed || value.trainingLocation !== undefined) @IsIn(['HOME', 'GYM', 'OUTDOOR', 'MIXED']) trainingLocation?: string;
   @IsOptional() @IsArray() @IsString({ each: true }) equipment?: string[];
-  @ValidateIf((value) => value.completed || value.dietType !== undefined) @IsIn(['Vegetarian', 'Non-vegetarian', 'Vegan', 'No preference']) dietType?: string;
+  @ValidateIf((value) => value.completed || value.dietType !== undefined) @IsIn(['Vegetarian', 'Eggetarian', 'Non-vegetarian', 'Vegan', 'No preference']) dietType?: string;
   @IsOptional() @IsArray() @IsString({ each: true }) foodPreferences?: string[];
   @IsOptional() @IsArray() @IsString({ each: true }) foodRestrictions?: string[];
   @ValidateIf((value) => value.completed || value.wakeTime !== undefined) @Matches(timePattern) wakeTime?: string;

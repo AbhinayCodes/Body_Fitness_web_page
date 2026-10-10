@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../data-access/prisma.service';
 import { NutritionCalculationService } from './nutrition-calculation.service';
+import { assessMedicalNutrition } from './medical-nutrition';
 import type { NutritionCalculationInput } from './nutrition-calculation.types';
 
 @Injectable()
@@ -11,6 +12,7 @@ export class NutritionService {
     const onboarding = await this.prisma.onboarding.findUnique({ where: { userId } });
     if (!onboarding?.completed) throw new BadRequestException('Complete onboarding before calculating nutrition targets.');
     if (!onboarding.age || !onboarding.sex || !onboarding.heightCm || !onboarding.weightKg || !onboarding.primaryGoal || !onboarding.trainingExperience || !onboarding.workoutDurationMinutes || !onboarding.trainingLocation) throw new BadRequestException('Your onboarding profile is incomplete.');
+    const medical = assessMedicalNutrition((onboarding.responses ?? {}) as Record<string, unknown>);
     return this.calculator.calculate({
       age: onboarding.age,
       sex: onboarding.sex as NutritionCalculationInput['sex'],
@@ -25,6 +27,8 @@ export class NutritionService {
       dailyActivity: onboarding.dailyActivity as NutritionCalculationInput['dailyActivity'],
       workSchedule: onboarding.workSchedule ?? undefined,
       preferredGymTime: onboarding.preferredGymTime ?? undefined,
+      requiresMedicalNutritionSupport: medical.requiresMedicalNutritionSupport,
+      medicalNutritionReasons: medical.reasons,
     });
   }
 }

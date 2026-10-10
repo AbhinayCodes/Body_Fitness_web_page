@@ -1,0 +1,1225 @@
+{
+  "base": "https://formwell-api.onrender.com",
+  "phone": "9100000007",
+  "scenarios": {
+    "P1_vegetarian_muscle_75_moderate": {
+      "input": {},
+      "saveStatus": 200,
+      "today": {
+        "status": "READY",
+        "isTrainingDay": false,
+        "targets": {
+          "calories": 2920,
+          "proteinGrams": 120,
+          "fatGrams": 65,
+          "carbohydrateGrams": 464,
+          "fiberGrams": 41
+        },
+        "meals": [
+          {
+            "slot": "BREAKFAST",
+            "name": "Besan Chilla",
+            "servings": 3,
+            "cal": 900,
+            "protein": 45,
+            "carbs": 114,
+            "fat": 27,
+            "fiber": 21,
+            "allergens": [],
+            "dietType": "VEGAN"
+          },
+          {
+            "slot": "LUNCH",
+            "name": "Chole with Roti",
+            "servings": 2,
+            "cal": 1000,
+            "protein": 40,
+            "carbs": 164,
+            "fat": 20,
+            "fiber": 32,
+            "allergens": [
+              "GLUTEN"
+            ],
+            "dietType": "VEGAN"
+          },
+          {
+            "slot": "DINNER",
+            "name": "Palak Paneer with Roti",
+            "servings": 2,
+            "cal": 1040,
+            "protein": 52,
+            "carbs": 100,
+            "fat": 48,
+            "fiber": 18,
+            "allergens": [
+              "DAIRY",
+              "GLUTEN"
+            ],
+            "dietType": "VEGETARIAN"
+          }
+        ],
+        "summary": {
+          "calories": {
+            "target": 2920,
+            "actual": 2940,
+            "difference": 20,
+            "percentDifference": 0.7
+          },
+          "proteinGrams": {
+            "target": 120,
+            "actual": 137,
+            "difference": 17,
+            "percentDifference": 14.2
+          },
+          "carbohydrateGrams": {
+            "target": 464,
+            "actual": 378,
+            "difference": -86,
+            "percentDifference": -18.5
+          },
+          "fatGrams": {
+            "target": 65,
+            "actual": 95,
+            "difference": 30,
+            "percentDifference": 46.2
+          },
+          "fiberGrams": {
+            "target": 41,
+            "actual": 71,
+            "difference": 30,
+            "percentDifference": 73.2
+          },
+          "withinTolerance": true
+        }
+      }
+    },
+    "P2_fat_loss": {
+      "input": {
+        "primaryGoal": "Lose fat"
+      },
+      "saveStatus": 200,
+      "today": {
+        "status": "READY",
+        "isTrainingDay": false,
+        "targets": {
+          "calories": 2420,
+          "proteinGrams": 113,
+          "fatGrams": 60,
+          "carbohydrateGrams": 357,
+          "fiberGrams": 34
+        },
+        "meals": [
+          {
+            "slot": "BREAKFAST",
+            "name": "Besan Chilla",
+            "servings": 2.5,
+            "cal": 750,
+            "protein": 37.5,
+            "carbs": 95,
+            "fat": 22.5,
+            "fiber": 17.5,
+            "allergens": [],
+            "dietType": "VEGAN"
+          },
+          {
+            "slot": "LUNCH",
+            "name": "Chole with Roti",
+            "servings": 1.75,
+            "cal": 875,
+            "protein": 35,
+            "carbs": 143.5,
+            "fat": 17.5,
+            "fiber": 28,
+            "allergens": [
+              "GLUTEN"
+            ],
+            "dietType": "VEGAN"
+          },
+          {
+            "slot": "DINNER",
+            "name": "Palak Paneer with Roti",
+            "servings": 1.5,
+            "cal": 780,
+            "protein": 39,
+            "carbs": 75,
+            "fat": 36,
+            "fiber": 13.5,
+            "allergens": [
+              "DAIRY",
+              "GLUTEN"
+            ],
+            "dietType": "VEGETARIAN"
+          }
+        ],
+        "summary": {
+          "calories": {
+            "target": 2420,
+            "actual": 2405,
+            "difference": -15,
+            "percentDifference": -0.6
+          },
+          "proteinGrams": {
+            "target": 113,
+            "actual": 112,
+            "difference": -1,
+            "percentDifference": -0.9
+          },
+          "carbohydrateGrams": {
+            "target": 357,
+            "actual": 314,
+            "difference": -43,
+            "percentDifference": -12
+          },
+          "fatGrams": {
+            "target": 60,
+            "actual": 76,
+            "difference": 16,
+            "percentDifference": 26.7
+          },
+          "fiberGrams": {
+            "target": 34,
+            "actual": 59,
+            "difference": 25,
+            "percentDifference": 73.5
+          },
+          "withinTolerance": true
+        }
+      }
+    },
+    "P3_weight_90": {
+      "input": {
+        "primaryGoal": "Build muscle",
+        "weightKg": 90
+      },
+      "saveStatus": 200,
+      "today": {
+        "status": "READY",
+        "isTrainingDay": false,
+        "targets": {
+          "calories": 3150,
+          "proteinGrams": 144,
+          "fatGrams": 72,
+          "carbohydrateGrams": 482,
+          "fiberGrams": 44
+        },
+        "meals": [
+          {
+            "slot": "BREAKFAST",
+            "name": "Besan Chilla",
+            "servings": 3,
+            "cal": 900,
+            "protein": 45,
+            "carbs": 114,
+            "fat": 27,
+            "fiber": 21,
+            "allergens": [],
+            "dietType": "VEGAN"
+          },
+          {
+            "slot": "LUNCH",
+            "name": "Chole with Roti",
+            "servings": 2.25,
+            "cal": 1125,
+            "protein": 45,
+            "carbs": 184.5,
+            "fat": 22.5,
+            "fiber": 36,
+            "allergens": [
+              "GLUTEN"
+            ],
+            "dietType": "VEGAN"
+          },
+          {
+            "slot": "DINNER",
+            "name": "Palak Paneer with Roti",
+            "servings": 2,
+            "cal": 1040,
+            "protein": 52,
+            "carbs": 100,
+            "fat": 48,
+            "fiber": 18,
+            "allergens": [
+              "DAIRY",
+              "GLUTEN"
+            ],
+            "dietType": "VEGETARIAN"
+          }
+        ],
+        "summary": {
+          "calories": {
+            "target": 3150,
+            "actual": 3065,
+            "difference": -85,
+            "percentDifference": -2.7
+          },
+          "proteinGrams": {
+            "target": 144,
+            "actual": 142,
+            "difference": -2,
+            "percentDifference": -1.4
+          },
+          "carbohydrateGrams": {
+            "target": 482,
+            "actual": 399,
+            "difference": -83,
+            "percentDifference": -17.2
+          },
+          "fatGrams": {
+            "target": 72,
+            "actual": 98,
+            "difference": 26,
+            "percentDifference": 36.1
+          },
+          "fiberGrams": {
+            "target": 44,
+            "actual": 75,
+            "difference": 31,
+            "percentDifference": 70.5
+          },
+          "withinTolerance": true
+        }
+      }
+    },
+    "P4_sedentary": {
+      "input": {
+        "primaryGoal": "Build muscle",
+        "weightKg": 75,
+        "dailyActivity": "SEDENTARY"
+      },
+      "saveStatus": 200,
+      "today": {
+        "status": "READY",
+        "isTrainingDay": false,
+        "targets": {
+          "calories": 2310,
+          "proteinGrams": 120,
+          "fatGrams": 60,
+          "carbohydrateGrams": 323,
+          "fiberGrams": 32
+        },
+        "meals": [
+          {
+            "slot": "BREAKFAST",
+            "name": "Besan Chilla",
+            "servings": 2.25,
+            "cal": 675,
+            "protein": 33.8,
+            "carbs": 85.5,
+            "fat": 20.3,
+            "fiber": 15.8,
+            "allergens": [],
+            "dietType": "VEGAN"
+          },
+          {
+            "slot": "LUNCH",
+            "name": "Chole with Roti",
+            "servings": 1.75,
+            "cal": 875,
+            "protein": 35,
+            "carbs": 143.5,
+            "fat": 17.5,
+            "fiber": 28,
+            "allergens": [
+              "GLUTEN"
+            ],
+            "dietType": "VEGAN"
+          },
+          {
+            "slot": "DINNER",
+            "name": "Palak Paneer with Roti",
+            "servings": 1.5,
+            "cal": 780,
+            "protein": 39,
+            "carbs": 75,
+            "fat": 36,
+            "fiber": 13.5,
+            "allergens": [
+              "DAIRY",
+              "GLUTEN"
+            ],
+            "dietType": "VEGETARIAN"
+          }
+        ],
+        "summary": {
+          "calories": {
+            "target": 2310,
+            "actual": 2330,
+            "difference": 20,
+            "percentDifference": 0.9
+          },
+          "proteinGrams": {
+            "target": 120,
+            "actual": 108,
+            "difference": -12,
+            "percentDifference": -10
+          },
+          "carbohydrateGrams": {
+            "target": 323,
+            "actual": 304,
+            "difference": -19,
+            "percentDifference": -5.9
+          },
+          "fatGrams": {
+            "target": 60,
+            "actual": 74,
+            "difference": 14,
+            "percentDifference": 23.3
+          },
+          "fiberGrams": {
+            "target": 32,
+            "actual": 57,
+            "difference": 25,
+            "percentDifference": 78.1
+          },
+          "withinTolerance": true
+        }
+      }
+    },
+    "DIET_vegetarian": {
+      "input": {
+        "dailyActivity": "MODERATELY_ACTIVE",
+        "dietType": "Vegetarian"
+      },
+      "saveStatus": 200,
+      "today": {
+        "status": "READY",
+        "isTrainingDay": false,
+        "targets": {
+          "calories": 2920,
+          "proteinGrams": 120,
+          "fatGrams": 65,
+          "carbohydrateGrams": 464,
+          "fiberGrams": 41
+        },
+        "meals": [
+          {
+            "slot": "BREAKFAST",
+            "name": "Besan Chilla",
+            "servings": 3,
+            "cal": 900,
+            "protein": 45,
+            "carbs": 114,
+            "fat": 27,
+            "fiber": 21,
+            "allergens": [],
+            "dietType": "VEGAN"
+          },
+          {
+            "slot": "LUNCH",
+            "name": "Chole with Roti",
+            "servings": 2,
+            "cal": 1000,
+            "protein": 40,
+            "carbs": 164,
+            "fat": 20,
+            "fiber": 32,
+            "allergens": [
+              "GLUTEN"
+            ],
+            "dietType": "VEGAN"
+          },
+          {
+            "slot": "DINNER",
+            "name": "Palak Paneer with Roti",
+            "servings": 2,
+            "cal": 1040,
+            "protein": 52,
+            "carbs": 100,
+            "fat": 48,
+            "fiber": 18,
+            "allergens": [
+              "DAIRY",
+              "GLUTEN"
+            ],
+            "dietType": "VEGETARIAN"
+          }
+        ],
+        "summary": {
+          "calories": {
+            "target": 2920,
+            "actual": 2940,
+            "difference": 20,
+            "percentDifference": 0.7
+          },
+          "proteinGrams": {
+            "target": 120,
+            "actual": 137,
+            "difference": 17,
+            "percentDifference": 14.2
+          },
+          "carbohydrateGrams": {
+            "target": 464,
+            "actual": 378,
+            "difference": -86,
+            "percentDifference": -18.5
+          },
+          "fatGrams": {
+            "target": 65,
+            "actual": 95,
+            "difference": 30,
+            "percentDifference": 46.2
+          },
+          "fiberGrams": {
+            "target": 41,
+            "actual": 71,
+            "difference": 30,
+            "percentDifference": 73.2
+          },
+          "withinTolerance": true
+        }
+      }
+    },
+    "DIET_nonvegetarian": {
+      "input": {
+        "dietType": "Non-vegetarian"
+      },
+      "saveStatus": 200,
+      "today": {
+        "status": "READY",
+        "isTrainingDay": false,
+        "targets": {
+          "calories": 2920,
+          "proteinGrams": 120,
+          "fatGrams": 65,
+          "carbohydrateGrams": 464,
+          "fiberGrams": 41
+        },
+        "meals": [
+          {
+            "slot": "BREAKFAST",
+            "name": "Dosa with Coconut Chutney",
+            "servings": 2.75,
+            "cal": 880,
+            "protein": 24.8,
+            "carbs": 148.5,
+            "fat": 22,
+            "fiber": 13.8,
+            "allergens": [],
+            "dietType": "VEGAN"
+          },
+          {
+            "slot": "LUNCH",
+            "name": "Paneer Veg Rice Bowl",
+            "servings": 1.75,
+            "cal": 980,
+            "protein": 45.5,
+            "carbs": 119,
+            "fat": 35,
+            "fiber": 14,
+            "allergens": [
+              "DAIRY"
+            ],
+            "dietType": "VEGETARIAN"
+          },
+          {
+            "slot": "DINNER",
+            "name": "Grilled Chicken with Sweet Potato",
+            "servings": 2,
+            "cal": 1000,
+            "protein": 90,
+            "carbs": 90,
+            "fat": 28,
+            "fiber": 14,
+            "allergens": [],
+            "dietType": "NON_VEGETARIAN"
+          }
+        ],
+        "summary": {
+          "calories": {
+            "target": 2920,
+            "actual": 2860,
+            "difference": -60,
+            "percentDifference": -2.1
+          },
+          "proteinGrams": {
+            "target": 120,
+            "actual": 160,
+            "difference": 40,
+            "percentDifference": 33.3
+          },
+          "carbohydrateGrams": {
+            "target": 464,
+            "actual": 358,
+            "difference": -106,
+            "percentDifference": -22.8
+          },
+          "fatGrams": {
+            "target": 65,
+            "actual": 85,
+            "difference": 20,
+            "percentDifference": 30.8
+          },
+          "fiberGrams": {
+            "target": 41,
+            "actual": 42,
+            "difference": 1,
+            "percentDifference": 2.4
+          },
+          "withinTolerance": false
+        }
+      }
+    },
+    "DIET_vegan": {
+      "input": {
+        "dietType": "Vegan"
+      },
+      "saveStatus": 200,
+      "today": {
+        "status": "READY",
+        "isTrainingDay": false,
+        "targets": {
+          "calories": 2920,
+          "proteinGrams": 120,
+          "fatGrams": 65,
+          "carbohydrateGrams": 464,
+          "fiberGrams": 41
+        },
+        "meals": [
+          {
+            "slot": "BREAKFAST",
+            "name": "Vegetable Poha",
+            "servings": 2.75,
+            "cal": 908,
+            "protein": 19.3,
+            "carbs": 154,
+            "fat": 24.8,
+            "fiber": 16.5,
+            "allergens": [
+              "PEANUT"
+            ],
+            "dietType": "VEGAN"
+          },
+          {
+            "slot": "LUNCH",
+            "name": "Rajma Chawal",
+            "servings": 2,
+            "cal": 1040,
+            "protein": 38,
+            "carbs": 188,
+            "fat": 16,
+            "fiber": 30,
+            "allergens": [],
+            "dietType": "VEGAN"
+          },
+          {
+            "slot": "DINNER",
+            "name": "Tofu Veg Stir Fry with Rice",
+            "servings": 2,
+            "cal": 960,
+            "protein": 44,
+            "carbs": 124,
+            "fat": 28,
+            "fiber": 16,
+            "allergens": [
+              "SOY"
+            ],
+            "dietType": "VEGAN"
+          }
+        ],
+        "summary": {
+          "calories": {
+            "target": 2920,
+            "actual": 2908,
+            "difference": -12,
+            "percentDifference": -0.4
+          },
+          "proteinGrams": {
+            "target": 120,
+            "actual": 101,
+            "difference": -19,
+            "percentDifference": -15.8
+          },
+          "carbohydrateGrams": {
+            "target": 464,
+            "actual": 466,
+            "difference": 2,
+            "percentDifference": 0.4
+          },
+          "fatGrams": {
+            "target": 65,
+            "actual": 69,
+            "difference": 4,
+            "percentDifference": 6.2
+          },
+          "fiberGrams": {
+            "target": 41,
+            "actual": 63,
+            "difference": 22,
+            "percentDifference": 53.7
+          },
+          "withinTolerance": false
+        }
+      }
+    },
+    "ALLERGY_DAIRY_upper": {
+      "input": {
+        "dietType": "Non-vegetarian",
+        "foodRestrictions": [
+          "DAIRY"
+        ]
+      },
+      "saveStatus": 200,
+      "today": {
+        "status": "READY",
+        "isTrainingDay": false,
+        "targets": {
+          "calories": 2920,
+          "proteinGrams": 120,
+          "fatGrams": 65,
+          "carbohydrateGrams": 464,
+          "fiberGrams": 41
+        },
+        "meals": [
+          {
+            "slot": "BREAKFAST",
+            "name": "Idli with Sambar and Coconut Chutney",
+            "servings": 2.5,
+            "cal": 900,
+            "protein": 30,
+            "carbs": 155,
+            "fat": 20,
+            "fiber": 20,
+            "allergens": [],
+            "dietType": "VEGAN"
+          },
+          {
+            "slot": "LUNCH",
+            "name": "Chicken Curry with Roti",
+            "servings": 2,
+            "cal": 1100,
+            "protein": 84,
+            "carbs": 110,
+            "fat": 32,
+            "fiber": 14,
+            "allergens": [
+              "GLUTEN"
+            ],
+            "dietType": "NON_VEGETARIAN"
+          },
+          {
+            "slot": "DINNER",
+            "name": "Egg Bhurji with Roti",
+            "servings": 2.25,
+            "cal": 1058,
+            "protein": 56.3,
+            "carbs": 117,
+            "fat": 40.5,
+            "fiber": 18,
+            "allergens": [
+              "EGG",
+              "GLUTEN"
+            ],
+            "dietType": "NON_VEGETARIAN"
+          }
+        ],
+        "summary": {
+          "calories": {
+            "target": 2920,
+            "actual": 3058,
+            "difference": 138,
+            "percentDifference": 4.7
+          },
+          "proteinGrams": {
+            "target": 120,
+            "actual": 170,
+            "difference": 50,
+            "percentDifference": 41.7
+          },
+          "carbohydrateGrams": {
+            "target": 464,
+            "actual": 382,
+            "difference": -82,
+            "percentDifference": -17.7
+          },
+          "fatGrams": {
+            "target": 65,
+            "actual": 93,
+            "difference": 28,
+            "percentDifference": 43.1
+          },
+          "fiberGrams": {
+            "target": 41,
+            "actual": 52,
+            "difference": 11,
+            "percentDifference": 26.8
+          },
+          "withinTolerance": false
+        }
+      }
+    },
+    "ALLERGY_dairy_lower": {
+      "input": {
+        "dietType": "Non-vegetarian",
+        "foodRestrictions": [
+          "dairy"
+        ]
+      },
+      "saveStatus": 200,
+      "today": {
+        "status": "READY",
+        "isTrainingDay": false,
+        "targets": {
+          "calories": 2920,
+          "proteinGrams": 120,
+          "fatGrams": 65,
+          "carbohydrateGrams": 464,
+          "fiberGrams": 41
+        },
+        "meals": [
+          {
+            "slot": "BREAKFAST",
+            "name": "Dosa with Coconut Chutney",
+            "servings": 2.75,
+            "cal": 880,
+            "protein": 24.8,
+            "carbs": 148.5,
+            "fat": 22,
+            "fiber": 13.8,
+            "allergens": [],
+            "dietType": "VEGAN"
+          },
+          {
+            "slot": "LUNCH",
+            "name": "Paneer Veg Rice Bowl",
+            "servings": 1.75,
+            "cal": 980,
+            "protein": 45.5,
+            "carbs": 119,
+            "fat": 35,
+            "fiber": 14,
+            "allergens": [
+              "DAIRY"
+            ],
+            "dietType": "VEGETARIAN"
+          },
+          {
+            "slot": "DINNER",
+            "name": "Grilled Chicken with Sweet Potato",
+            "servings": 2,
+            "cal": 1000,
+            "protein": 90,
+            "carbs": 90,
+            "fat": 28,
+            "fiber": 14,
+            "allergens": [],
+            "dietType": "NON_VEGETARIAN"
+          }
+        ],
+        "summary": {
+          "calories": {
+            "target": 2920,
+            "actual": 2860,
+            "difference": -60,
+            "percentDifference": -2.1
+          },
+          "proteinGrams": {
+            "target": 120,
+            "actual": 160,
+            "difference": 40,
+            "percentDifference": 33.3
+          },
+          "carbohydrateGrams": {
+            "target": 464,
+            "actual": 358,
+            "difference": -106,
+            "percentDifference": -22.8
+          },
+          "fatGrams": {
+            "target": 65,
+            "actual": 85,
+            "difference": 20,
+            "percentDifference": 30.8
+          },
+          "fiberGrams": {
+            "target": 41,
+            "actual": 42,
+            "difference": 1,
+            "percentDifference": 2.4
+          },
+          "withinTolerance": false
+        }
+      }
+    }
+  },
+  "generatedAt": "2026-10-03T20:03:17.360Z",
+  "login": {
+    "status": 201,
+    "isNewUser": true
+  },
+  "weekly": {
+    "firstLoad": [
+      {
+        "date": "2026-09-28",
+        "meals": [
+          {
+            "slot": "BREAKFAST",
+            "name": "Moong Dal Chilla",
+            "servings": 2.75,
+            "calPerServing": 310
+          },
+          {
+            "slot": "LUNCH",
+            "name": "Dal Rice with Vegetables",
+            "servings": 2,
+            "calPerServing": 480
+          },
+          {
+            "slot": "PRE_WORKOUT",
+            "name": "Curd Fruit Cup",
+            "servings": 1.75,
+            "calPerServing": 220
+          },
+          {
+            "slot": "POST_WORKOUT",
+            "name": "Soy Oats Protein Shake",
+            "servings": 2,
+            "calPerServing": 360
+          }
+        ]
+      },
+      {
+        "date": "2026-09-29",
+        "meals": [
+          {
+            "slot": "BREAKFAST",
+            "name": "Paneer Paratha",
+            "servings": 2,
+            "calPerServing": 420
+          },
+          {
+            "slot": "LUNCH",
+            "name": "Paneer Veg Rice Bowl",
+            "servings": 1.75,
+            "calPerServing": 560
+          },
+          {
+            "slot": "PRE_WORKOUT",
+            "name": "Peanut Banana Toast",
+            "servings": 1.25,
+            "calPerServing": 300
+          },
+          {
+            "slot": "POST_WORKOUT",
+            "name": "Paneer Protein Bowl",
+            "servings": 1.5,
+            "calPerServing": 520
+          }
+        ]
+      },
+      {
+        "date": "2026-09-30",
+        "meals": [
+          {
+            "slot": "BREAKFAST",
+            "name": "Vegetable Oats Upma",
+            "servings": 2.75,
+            "calPerServing": 320
+          },
+          {
+            "slot": "LUNCH",
+            "name": "Rajma Chawal",
+            "servings": 2,
+            "calPerServing": 520
+          },
+          {
+            "slot": "DINNER",
+            "name": "Tofu Veg Stir Fry with Rice",
+            "servings": 2,
+            "calPerServing": 480
+          }
+        ]
+      },
+      {
+        "date": "2026-10-01",
+        "meals": [
+          {
+            "slot": "BREAKFAST",
+            "name": "Vegetable Poha",
+            "servings": 2.5,
+            "calPerServing": 330
+          },
+          {
+            "slot": "LUNCH",
+            "name": "Soya Chunk Curry with Rice",
+            "servings": 1.75,
+            "calPerServing": 520
+          },
+          {
+            "slot": "PRE_WORKOUT",
+            "name": "Curd Fruit Cup",
+            "servings": 1.75,
+            "calPerServing": 220
+          },
+          {
+            "slot": "POST_WORKOUT",
+            "name": "Paneer Protein Bowl",
+            "servings": 1.5,
+            "calPerServing": 520
+          }
+        ]
+      },
+      {
+        "date": "2026-10-02",
+        "meals": [
+          {
+            "slot": "BREAKFAST",
+            "name": "Banana Almond Oats Bowl",
+            "servings": 2.25,
+            "calPerServing": 380
+          },
+          {
+            "slot": "LUNCH",
+            "name": "Vegetable Pulao with Raita",
+            "servings": 2,
+            "calPerServing": 500
+          },
+          {
+            "slot": "PRE_WORKOUT",
+            "name": "Peanut Banana Toast",
+            "servings": 1.25,
+            "calPerServing": 300
+          },
+          {
+            "slot": "POST_WORKOUT",
+            "name": "Soy Oats Protein Shake",
+            "servings": 2,
+            "calPerServing": 360
+          }
+        ]
+      },
+      {
+        "date": "2026-10-03",
+        "meals": [
+          {
+            "slot": "BREAKFAST",
+            "name": "Besan Chilla",
+            "servings": 3,
+            "calPerServing": 300
+          },
+          {
+            "slot": "LUNCH",
+            "name": "Chole with Roti",
+            "servings": 2,
+            "calPerServing": 500
+          },
+          {
+            "slot": "DINNER",
+            "name": "Palak Paneer with Roti",
+            "servings": 2,
+            "calPerServing": 520
+          }
+        ]
+      },
+      {
+        "date": "2026-10-04",
+        "meals": [
+          {
+            "slot": "BREAKFAST",
+            "name": "Dosa with Coconut Chutney",
+            "servings": 2.75,
+            "calPerServing": 320
+          },
+          {
+            "slot": "LUNCH",
+            "name": "Dal Rice with Vegetables",
+            "servings": 2.25,
+            "calPerServing": 480
+          },
+          {
+            "slot": "DINNER",
+            "name": "Paneer Bhurji with Roti",
+            "servings": 2,
+            "calPerServing": 530
+          }
+        ]
+      }
+    ],
+    "secondLoad": [
+      {
+        "date": "2026-09-28",
+        "meals": [
+          {
+            "slot": "BREAKFAST",
+            "name": "Moong Dal Chilla",
+            "servings": 2.75,
+            "calPerServing": 310
+          },
+          {
+            "slot": "LUNCH",
+            "name": "Dal Rice with Vegetables",
+            "servings": 2,
+            "calPerServing": 480
+          },
+          {
+            "slot": "PRE_WORKOUT",
+            "name": "Curd Fruit Cup",
+            "servings": 1.75,
+            "calPerServing": 220
+          },
+          {
+            "slot": "POST_WORKOUT",
+            "name": "Soy Oats Protein Shake",
+            "servings": 2,
+            "calPerServing": 360
+          }
+        ]
+      },
+      {
+        "date": "2026-09-29",
+        "meals": [
+          {
+            "slot": "BREAKFAST",
+            "name": "Paneer Paratha",
+            "servings": 2,
+            "calPerServing": 420
+          },
+          {
+            "slot": "LUNCH",
+            "name": "Paneer Veg Rice Bowl",
+            "servings": 1.75,
+            "calPerServing": 560
+          },
+          {
+            "slot": "PRE_WORKOUT",
+            "name": "Peanut Banana Toast",
+            "servings": 1.25,
+            "calPerServing": 300
+          },
+          {
+            "slot": "POST_WORKOUT",
+            "name": "Paneer Protein Bowl",
+            "servings": 1.5,
+            "calPerServing": 520
+          }
+        ]
+      },
+      {
+        "date": "2026-09-30",
+        "meals": [
+          {
+            "slot": "BREAKFAST",
+            "name": "Vegetable Oats Upma",
+            "servings": 2.75,
+            "calPerServing": 320
+          },
+          {
+            "slot": "LUNCH",
+            "name": "Rajma Chawal",
+            "servings": 2,
+            "calPerServing": 520
+          },
+          {
+            "slot": "DINNER",
+            "name": "Tofu Veg Stir Fry with Rice",
+            "servings": 2,
+            "calPerServing": 480
+          }
+        ]
+      },
+      {
+        "date": "2026-10-01",
+        "meals": [
+          {
+            "slot": "BREAKFAST",
+            "name": "Vegetable Poha",
+            "servings": 2.5,
+            "calPerServing": 330
+          },
+          {
+            "slot": "LUNCH",
+            "name": "Soya Chunk Curry with Rice",
+            "servings": 1.75,
+            "calPerServing": 520
+          },
+          {
+            "slot": "PRE_WORKOUT",
+            "name": "Curd Fruit Cup",
+            "servings": 1.75,
+            "calPerServing": 220
+          },
+          {
+            "slot": "POST_WORKOUT",
+            "name": "Paneer Protein Bowl",
+            "servings": 1.5,
+            "calPerServing": 520
+          }
+        ]
+      },
+      {
+        "date": "2026-10-02",
+        "meals": [
+          {
+            "slot": "BREAKFAST",
+            "name": "Banana Almond Oats Bowl",
+            "servings": 2.25,
+            "calPerServing": 380
+          },
+          {
+            "slot": "LUNCH",
+            "name": "Vegetable Pulao with Raita",
+            "servings": 2,
+            "calPerServing": 500
+          },
+          {
+            "slot": "PRE_WORKOUT",
+            "name": "Peanut Banana Toast",
+            "servings": 1.25,
+            "calPerServing": 300
+          },
+          {
+            "slot": "POST_WORKOUT",
+            "name": "Soy Oats Protein Shake",
+            "servings": 2,
+            "calPerServing": 360
+          }
+        ]
+      },
+      {
+        "date": "2026-10-03",
+        "meals": [
+          {
+            "slot": "BREAKFAST",
+            "name": "Besan Chilla",
+            "servings": 3,
+            "calPerServing": 300
+          },
+          {
+            "slot": "LUNCH",
+            "name": "Chole with Roti",
+            "servings": 2,
+            "calPerServing": 500
+          },
+          {
+            "slot": "DINNER",
+            "name": "Palak Paneer with Roti",
+            "servings": 2,
+            "calPerServing": 520
+          }
+        ]
+      },
+      {
+        "date": "2026-10-04",
+        "meals": [
+          {
+            "slot": "BREAKFAST",
+            "name": "Dosa with Coconut Chutney",
+            "servings": 2.75,
+            "calPerServing": 320
+          },
+          {
+            "slot": "LUNCH",
+            "name": "Dal Rice with Vegetables",
+            "servings": 2.25,
+            "calPerServing": 480
+          },
+          {
+            "slot": "DINNER",
+            "name": "Paneer Bhurji with Roti",
+            "servings": 2,
+            "calPerServing": 530
+          }
+        ]
+      }
+    ]
+  }
+}

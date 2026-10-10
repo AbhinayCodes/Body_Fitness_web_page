@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import type { DailyScheduleInput, GeneratedDailySchedule, NutritionSummary, ScheduledMeal, ScheduleRecipe, SummaryMeal } from './schedule-planner.types';
 import type { NutritionTargets } from '../nutrition/nutrition-calculation.types';
+import { dietCompatible, normalizeRestrictions, recipeViolatesAllergens } from '../nutrition/dietary-safety';
 
 // Portion scaling keeps servings realistic while still reaching the meal's calorie target.
 const MIN_SERVINGS = 0.5;
@@ -29,13 +30,14 @@ export class SchedulePlannerService {
     }
     const spaced = candidates.sort((left, right) => left.time - right.time).filter((candidate, index, list) => index === 0 || candidate.time - list[index - 1].time >= 120);
     const totalShares = spaced.reduce((total, meal) => total + meal.share, 0);
+    const restrictions = normalizeRestrictions(input.restrictions).allergens;
     const usedRecipeIds = new Set<string>();
-    const meals = spaced.map((meal) => this.recipeFor(meal.slot, meal.time, Math.round(input.targets.calories * meal.share / totalShares), input, recipes, usedRecipeIds));
+    const meals = spaced.map((meal) => this.recipeFor(meal.slot, meal.time, Math.round(input.targets.calories * meal.share / totalShares), input, recipes, restrictions, usedRecipeIds));
     return { meals };
   }
 
-  private recipeFor(slot: string, scheduledMinutes: number, targetCalories: number, input: DailyScheduleInput, recipes: ScheduleRecipe[], usedRecipeIds: Set<string>): ScheduledMeal {
-    const compatible = recipes.filter((recipe) => dietCompatible(recipe.dietType, input.dietType) && !recipe.allergens.some((allergen) => input.restrictions.includes(allergen)));
+  private recipeFor(slot: string, scheduledMinutes: number, targetCalories: number, input: DailyScheduleInput, recipes: ScheduleRecipe[], restrictions: ReturnType<typeof normalizeRestrictions>['allergens'], usedRecipeIds: Set<string>): ScheduledMeal {
+    const compatible = recipes.filter((recipe) => dietCompatible(recipe, input.dietType) && !recipeViolatesAllergens(recipe, restrictions));
     const categoryMatches = compatible.filter((recipe) => recipe.mealCategory === slot);
     // Deterministic base order so the same inputs always produce the same plan within a day.
     const pool = (categoryMatches.length ? categoryMatches : compatible).slice().sort((left, right) => left.name.localeCompare(right.name));
@@ -90,4 +92,3 @@ function compare(target: number, actualRaw: number): { target: number; actual: n
 export function parseTime(value: string): number { const match = /^(\d{2}):(\d{2})$/.exec(value); if (!match || Number(match[1]) > 23 || Number(match[2]) > 59) throw new SchedulePlanningError('Times must use HH:MM format.'); return Number(match[1]) * 60 + Number(match[2]); }
 function nextDayTime(time: number, wake: number): number { return time <= wake ? time + 1440 : time; }
 function alignTime(time: number, wake: number, sleep: number): number { const aligned = time < wake ? time + 1440 : time; if (aligned < wake || aligned > sleep) throw new SchedulePlanningError('Workout time must fall between wake and sleep.'); return aligned; }
-function dietCompatible(recipeDiet: string, userDiet: string): boolean { return userDiet === 'Vegan' ? recipeDiet === 'VEGAN' : userDiet === 'Vegetarian' ? ['VEGETARIAN', 'VEGAN'].includes(recipeDiet) : ['VEGETARIAN', 'VEGAN', 'NON_VEGETARIAN'].includes(recipeDiet); }

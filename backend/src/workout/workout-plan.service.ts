@@ -28,6 +28,19 @@ export class WorkoutPlanService {
     if (!onboarding?.completed) throw new BadRequestException('Complete onboarding before generating a workout plan.');
     if (!onboarding.primaryGoal || !onboarding.trainingExperience || !onboarding.workoutDurationMinutes || !onboarding.trainingLocation || !onboarding.trainingDays.length) throw new BadRequestException('Your training profile is incomplete.');
 
+    // Age-aware safety gate: the app has no validated youth-training rules, so it does not auto-prescribe
+    // an adult plan for minors. Return a restricted, non-persisted outcome instead (mirrors medical clearance).
+    if (onboarding.age != null && onboarding.age < 18) {
+      return {
+        requiresMedicalClearance: true,
+        requiresYouthReview: true,
+        safetyNotices: ['This app does not create structured training plans for people under 18. Youth training load and exercise selection should be guided by a parent or guardian together with a qualified coach or healthcare professional.'],
+        durationMinutes: onboarding.workoutDurationMinutes,
+        prescription: { archetype: 'youth-review', rationale: 'Restricted: age-appropriate programming requires professional guidance.', sessions: [] },
+        days: [],
+      };
+    }
+
     const derived = contextFromOnboarding(onboarding);
     const responses = (onboarding.responses ?? {}) as Record<string, unknown>;
     const richGoal = typeof responses.primaryGoal === 'string' ? (responses.primaryGoal as RichGoal) : undefined;

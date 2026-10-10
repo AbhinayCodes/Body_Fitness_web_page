@@ -23,7 +23,8 @@ export class ScheduleService {
     const existing = await this.prisma.dailySchedule.findUnique({ where: { userId_date_sourceFingerprint: { userId, date: new Date(`${date}T00:00:00.000Z`), sourceFingerprint } }, include: scheduleInclude });
     if (existing) return existing;
     const catalog = await this.recipes.findMany({});
-    const generated = this.planner.generate({ wakeTime: onboarding.wakeTime, sleepTime: onboarding.sleepTime, gymTime: onboarding.preferredGymTime ?? undefined, workoutDurationMinutes: onboarding.workoutDurationMinutes, isTrainingDay: Boolean(workoutPlanDay), dietType: onboarding.dietType, restrictions: onboarding.foodRestrictions, targets: nutrition.targets, dayNumber: dayNumber(date) }, catalog);
+    const plannerRecipes = catalog.map((recipe) => ({ ...recipe, ingredientNames: recipe.ingredients?.map((entry) => entry.ingredient.name) ?? [] }));
+    const generated = this.planner.generate({ wakeTime: onboarding.wakeTime, sleepTime: onboarding.sleepTime, gymTime: onboarding.preferredGymTime ?? undefined, workoutDurationMinutes: onboarding.workoutDurationMinutes, isTrainingDay: Boolean(workoutPlanDay), dietType: onboarding.dietType, restrictions: onboarding.foodRestrictions, targets: nutrition.targets, dayNumber: dayNumber(date) }, plannerRecipes);
     return this.prisma.dailySchedule.create({ data: { userId, date: new Date(`${date}T00:00:00.000Z`), sourceFingerprint, isTrainingDay: Boolean(workoutPlanDay), workoutPlanDayId: workoutPlanDay?.id, meals: { create: generated.meals } }, include: scheduleInclude });
   }
 

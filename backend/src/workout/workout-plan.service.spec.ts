@@ -12,10 +12,11 @@ for (const constraint of exerciseConstraints) {
 const catalogRows = exerciseLibrary.map((exercise) => ({ ...exercise, id: exercise.slug, constraints: constraintsBySlug.get(exercise.slug) ?? [] }));
 const relationRows = exerciseRelations.map((relation) => ({ fromExerciseId: relation.from, toExerciseId: relation.to, relationType: relation.relationType }));
 
-type OnboardingOverrides = Partial<{ primaryGoal: string; trainingExperience: string; workoutDurationMinutes: number; trainingLocation: string; trainingDays: string[]; equipment: string[]; secondaryGoals: string[]; responses: Record<string, unknown> }>;
+type OnboardingOverrides = Partial<{ age: number; primaryGoal: string; trainingExperience: string; workoutDurationMinutes: number; trainingLocation: string; trainingDays: string[]; equipment: string[]; secondaryGoals: string[]; responses: Record<string, unknown> }>;
 function onboardingFor(overrides: OnboardingOverrides = {}) {
   return {
     completed: true,
+    age: overrides.age ?? 28,
     primaryGoal: overrides.primaryGoal ?? 'Build muscle',
     trainingExperience: overrides.trainingExperience ?? 'INTERMEDIATE',
     workoutDurationMinutes: overrides.workoutDurationMinutes ?? 60,
@@ -126,5 +127,23 @@ describe('WorkoutPlanService — live generation via the new pipeline', () => {
     const prisma = makePrisma({ completed: true, primaryGoal: null, trainingExperience: null, workoutDurationMinutes: null, trainingLocation: null, trainingDays: [], equipment: [], secondaryGoals: [], responses: {} });
     const service = new WorkoutPlanService(prisma as never);
     await expect(service.getPlan('user-1')).rejects.toThrow('incomplete');
+  });
+
+  it('does not auto-prescribe an adult plan for under-18 users; returns a restricted, non-persisted outcome', async () => {
+    const prisma = makePrisma(onboardingFor({ age: 15 }));
+    const service = new WorkoutPlanService(prisma as never);
+    const result = await service.getPlan('user-1') as { requiresYouthReview?: boolean; requiresMedicalClearance?: boolean; safetyNotices?: string[]; days: unknown[]; id?: string };
+    expect(result.requiresYouthReview).toBe(true);
+    expect(result.requiresMedicalClearance).toBe(true);
+    expect(result.days).toHaveLength(0);
+    expect('id' in result).toBe(false); // not persisted -> schedule treats it as a rest day
+    expect((result.safetyNotices ?? []).join(' ')).toMatch(/under 18/i);
+    expect(prisma.workoutPlan.create).not.toHaveBeenCalled();
+    expect(prisma.exercise.findMany).not.toHaveBeenCalled();
+  });
+
+  it('still generates a normal plan for adults at the age boundary', async () => {
+    const data = await generate({ age: 18 });
+    expect(data.days.create.length).toBeGreaterThan(0);
   });
 });
